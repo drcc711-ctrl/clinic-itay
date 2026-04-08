@@ -1,0 +1,3088 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<script>
+  // لو الملف مفتوح محلياً، روح Netlify تلقائياً
+  if(window.location.protocol === 'file:') {
+    window.location.replace('https://itay326656.netlify.app/');
+  }
+</script>
+<link rel="manifest" href="data:application/json;charset=utf-8,{%22name%22: %22عيادة إيتاي%22, %22short_name%22: %22إيتاي%22, %22description%22: %22نظام إدارة عيادة إيتاي للأسنان%22, %22start_url%22: %22/%22, %22display%22: %22standalone%22, %22background_color%22: %22#F0F4FA%22, %22theme_color%22: %22#185FA5%22, %22orientation%22: %22portrait-primary%22, %22icons%22: [{%22src%22: %22data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 192 192'><rect width='192' height='192' rx='40' fill='%23185FA5'/><text y='140' font-size='120' text-anchor='middle' x='96'>🦷</text></svg>%22, %22sizes%22: %22192x192%22, %22type%22: %22image/svg+xml%22}, {%22src%22: %22data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'><rect width='512' height='512' rx='100' fill='%23185FA5'/><text y='380' font-size='320' text-anchor='middle' x='256'>🦷</text></svg>%22, %22sizes%22: %22512x512%22, %22type%22: %22image/svg+xml%22}]}">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="إيتاي">
+<meta name="theme-color" content="#185FA5">
+<script>
+if('serviceWorker' in navigator){
+  navigator.serviceWorker.register('/sw.js').catch(()=>{});
+}
+</script>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>🔵 إيتاي - نظام إدارة الأسنان</title>
+<!-- Firebase SDK -->
+<script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;}
+:root{
+  --bg:#ffffff;--bg2:#f5f5f3;--bg3:#efefec;
+  --text:#1a1a1a;--text2:#6b6b6b;--text3:#9b9b9b;
+  --border:#e0e0da;--border2:#c8c8c0;
+  --blue:#185FA5;--blue-light:#E6F1FB;--blue-dark:#0C447C;
+  --green:#0F6E56;--green-light:#E1F5EE;
+  --amber:#633806;--amber-light:#FAEEDA;
+  --red:#791F1F;--red-light:#FCEBEB;
+  --purple:#3C3489;--purple-light:#EEEDFE;
+  --radius:8px;--radius-lg:12px;
+}
+body{font-family:'Segoe UI',Tahoma,Arial,sans-serif;background:var(--bg3);color:var(--text);font-size:14px;}
+.app{display:flex;height:100vh;overflow:hidden;}
+.sidebar{width:200px;background:var(--bg);border-left:1px solid var(--border);display:flex;flex-direction:column;flex-shrink:0;}
+.logo{padding:16px;border-bottom:1px solid var(--border);}
+.logo-icon{width:36px;height:36px;background:var(--blue-light);border-radius:10px;display:flex;align-items:center;justify-content:center;margin-bottom:8px;}
+.logo-name{font-size:15px;font-weight:600;color:var(--text);}
+.logo-sub{font-size:11px;color:var(--text2);}
+.nav{padding:8px 0;flex:1;overflow-y:auto;}
+.nav-item{display:flex;align-items:center;gap:9px;padding:9px 14px;cursor:pointer;font-size:13px;color:var(--text2);border-right:3px solid transparent;transition:all 0.15s;user-select:none;}
+.nav-item:hover{background:var(--bg2);color:var(--text);}
+.nav-item.active{color:var(--blue);border-right-color:var(--blue);background:var(--blue-light);font-weight:600;}
+.nav-icon{width:16px;height:16px;flex-shrink:0;}
+.main{flex:1;display:flex;flex-direction:column;overflow:hidden;}
+.topbar{background:var(--bg);border-bottom:1px solid var(--border);padding:12px 20px;display:flex;justify-content:space-between;align-items:center;flex-shrink:0;}
+.topbar h1{font-size:16px;font-weight:600;}
+.topbar-right{display:flex;gap:8px;align-items:center;}
+.date-badge{font-size:12px;color:var(--text2);background:var(--bg2);padding:4px 10px;border-radius:20px;}
+.btn{padding:7px 16px;border-radius:var(--radius);font-size:13px;cursor:pointer;border:1px solid var(--border2);background:var(--bg);color:var(--text);transition:all 0.15s;font-family:inherit;}
+.btn:hover{background:var(--bg2);}
+.btn-primary{background:var(--blue);color:white;border-color:var(--blue);}
+.btn-primary:hover{background:var(--blue-dark);}
+.btn-danger{background:var(--red-light);color:var(--red);border-color:#F09595;}
+.btn-sm{padding:4px 12px;font-size:12px;}
+.content{flex:1;overflow-y:auto;padding:20px;}
+.page{display:none;}
+.page.active{display:block;}
+/* Stats */
+.stats-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:20px;}
+.stat{background:var(--bg2);border-radius:var(--radius);padding:14px;}
+.stat-label{font-size:11px;color:var(--text2);margin-bottom:4px;}
+.stat-value{font-size:22px;font-weight:700;}
+.stat-sub{font-size:11px;margin-top:3px;}
+.c-blue{color:var(--blue);} .c-green{color:var(--green);} .c-red{color:#993C1D;} .c-amber{color:var(--amber);}
+/* Cards */
+.card{background:var(--bg);border:1px solid var(--border);border-radius:var(--radius-lg);padding:16px;margin-bottom:16px;}
+.card-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;}
+.card-title{font-size:14px;font-weight:600;}
+.two-col{display:grid;grid-template-columns:1fr 1fr;gap:16px;}
+.three-col{display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;}
+/* Table */
+table{width:100%;font-size:13px;border-collapse:collapse;}
+th{text-align:right;padding:9px 12px;color:var(--text2);font-weight:500;border-bottom:1px solid var(--border);font-size:12px;}
+td{padding:10px 12px;border-bottom:1px solid var(--border);}
+tr:last-child td{border-bottom:none;}
+tr:hover td{background:var(--bg2);}
+/* Badges */
+.badge{display:inline-block;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:600;}
+.b-green{background:var(--green-light);color:var(--green);}
+.b-blue{background:var(--blue-light);color:var(--blue-dark);}
+.b-amber{background:var(--amber-light);color:var(--amber);}
+.b-red{background:var(--red-light);color:var(--red);}
+.b-purple{background:var(--purple-light);color:var(--purple);}
+.b-gray{background:var(--bg2);color:var(--text2);}
+/* Avatar */
+.av{width:32px;height:32px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;flex-shrink:0;}
+.av-b{background:#B5D4F4;color:#0C447C;}
+.av-t{background:#9FE1CB;color:#085041;}
+.av-p{background:#CECBF6;color:#3C3489;}
+.av-c{background:#F5C4B3;color:#712B13;}
+.av-g{background:#D3D1C7;color:#444441;}
+.pr{display:flex;align-items:center;gap:8px;}
+/* Forms */
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+.form-g{display:flex;flex-direction:column;gap:5px;margin-bottom:12px;}
+.form-g label{font-size:12px;color:var(--text2);font-weight:500;}
+input,select,textarea{padding:8px 12px;border-radius:var(--radius);border:1px solid var(--border2);background:var(--bg);color:var(--text);font-size:13px;font-family:inherit;width:100%;transition:border 0.15s;}
+input:focus,select:focus,textarea:focus{outline:none;border-color:var(--blue);box-shadow:0 0 0 3px rgba(24,95,165,0.1);}
+/* Appointments */
+.appt{display:flex;align-items:center;gap:10px;padding:10px;background:var(--bg2);border-radius:var(--radius);margin-bottom:8px;transition:background 0.15s;}
+.appt:hover{background:var(--bg3);}
+.appt-time{font-size:12px;font-weight:700;color:var(--text2);width:44px;flex-shrink:0;text-align:center;}
+.appt-info{flex:1;}
+.appt-name{font-size:13px;font-weight:600;}
+.appt-type{font-size:11px;color:var(--text2);}
+/* Tooth Chart */
+.tooth-chart{background:var(--bg2);border-radius:var(--radius-lg);padding:16px;margin-bottom:16px;}
+.jaw-label{font-size:12px;color:var(--text2);text-align:center;margin-bottom:8px;font-weight:500;}
+.jaw{display:flex;justify-content:center;gap:4px;}
+.tooth{width:30px;height:36px;cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;border-radius:5px;border:1.5px solid var(--border2);background:var(--bg);transition:all 0.15s;position:relative;}
+.tooth:hover{border-color:var(--blue);transform:scale(1.05);}
+.tooth.selected{border-color:var(--blue);background:var(--blue-light);box-shadow:0 0 0 2px rgba(24,95,165,0.2);}
+.tooth .tn{font-size:9px;color:var(--text2);}
+.tooth .ts{width:16px;height:18px;border-radius:3px;}
+.tooth.healthy .ts{background:#c0dd97;border:1px solid #639922;}
+.tooth.cavity .ts{background:#F09595;border:1px solid #E24B4A;}
+.tooth.filled .ts{background:#FAC775;border:1px solid #BA7517;}
+.tooth.crown .ts{background:#AFA9EC;border:1px solid #7F77DD;}
+.tooth.missing .ts{background:var(--bg2);border:1.5px dashed var(--border2);opacity:0.5;}
+.legend{display:flex;gap:14px;flex-wrap:wrap;margin-top:10px;justify-content:center;}
+.legend-item{display:flex;align-items:center;gap:5px;font-size:11px;color:var(--text2);}
+.legend-dot{width:12px;height:12px;border-radius:3px;}
+/* Inventory bars */
+.inv-row{display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid var(--border);}
+.inv-row:last-child{border-bottom:none;}
+.pbar{height:5px;background:var(--bg3);border-radius:3px;margin-top:4px;width:90px;}
+.pfill{height:100%;border-radius:3px;}
+/* Modal */
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.4);display:none;align-items:center;justify-content:center;z-index:100;backdrop-filter:blur(2px);}
+.modal-overlay.show{display:flex;}
+.modal{background:var(--bg);border-radius:var(--radius-lg);padding:22px;width:500px;max-height:85vh;overflow-y:auto;border:1px solid var(--border);box-shadow:0 20px 60px rgba(0,0,0,0.15);}
+.modal-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:18px;padding-bottom:14px;border-bottom:1px solid var(--border);}
+.modal-title{font-size:16px;font-weight:700;}
+.xbtn{cursor:pointer;font-size:22px;color:var(--text2);background:none;border:none;line-height:1;padding:0;transition:color 0.15s;}
+.xbtn:hover{color:var(--text);}
+/* Tabs */
+.tab-bar{display:flex;gap:4px;margin-bottom:16px;background:var(--bg2);padding:4px;border-radius:var(--radius);width:fit-content;}
+.tab{padding:6px 16px;border-radius:6px;font-size:13px;cursor:pointer;color:var(--text2);border:none;background:transparent;font-family:inherit;transition:all 0.15s;}
+.tab:hover{color:var(--text);}
+.tab.active{background:var(--bg);color:var(--blue);font-weight:600;box-shadow:0 1px 3px rgba(0,0,0,0.1);}
+/* Alerts */
+.alert{display:flex;gap:10px;align-items:flex-start;padding:10px 14px;border-radius:var(--radius);margin-bottom:8px;}
+.alert-amber{background:var(--amber-light);border:1px solid #EF9F27;}
+.alert-red{background:var(--red-light);border:1px solid #F09595;}
+/* Note items */
+.note-item{padding:10px 12px;border:1px solid var(--border);border-radius:var(--radius);margin-bottom:8px;}
+.note-date{font-size:10px;color:var(--text2);margin-bottom:3px;}
+/* Scrollbar */
+::-webkit-scrollbar{width:6px;}
+::-webkit-scrollbar-track{background:transparent;}
+::-webkit-scrollbar-thumb{background:var(--border2);border-radius:3px;}
+/* Toast */
+.toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(100px);background:#1a1a1a;color:white;padding:12px 20px;border-radius:var(--radius);font-size:13px;z-index:999;transition:transform 0.3s ease;box-shadow:0 4px 20px rgba(0,0,0,0.3);}
+.toast.show{transform:translateX(-50%) translateY(0);}
+
+/* ===== MOBILE RESPONSIVE ===== */
+@media (max-width: 768px) {
+  .app { flex-direction: column; height: 100dvh; }
+
+  /* Sidebar becomes bottom nav */
+  .sidebar {
+    width: 100% !important;
+    height: auto;
+    border-left: none;
+    border-top: 1px solid var(--border);
+    order: 2;
+    flex-direction: row;
+    overflow-x: auto;
+  }
+  .logo { display: none; }
+  .nav {
+    display: flex;
+    flex-direction: row;
+    padding: 0;
+    overflow-x: auto;
+    flex: 1;
+    scrollbar-width: none;
+  }
+  .nav::-webkit-scrollbar { display: none; }
+  .nav-item {
+    flex-direction: column;
+    gap: 2px;
+    padding: 8px 12px;
+    font-size: 10px;
+    border-right: none !important;
+    border-top: 3px solid transparent;
+    white-space: nowrap;
+    flex-shrink: 0;
+  }
+  .nav-item.active {
+    border-top-color: var(--blue);
+    border-right-color: transparent !important;
+  }
+  .nav-icon { width: 18px; height: 18px; }
+
+  /* Main area */
+  .main { order: 1; flex: 1; overflow: hidden; }
+  .topbar {
+    padding: 10px 12px;
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+  .topbar h1 { font-size: 15px; }
+  .topbar-right { gap: 6px; }
+  .date-badge { display: none; }
+  #sync-status { font-size: 10px; padding: 3px 7px; }
+
+  .content { padding: 10px; }
+
+  /* Grids → single column */
+  .stats-grid { grid-template-columns: repeat(2, 1fr); gap: 8px; margin-bottom: 12px; }
+  .two-col { grid-template-columns: 1fr; gap: 10px; }
+  .three-col { grid-template-columns: 1fr; gap: 10px; }
+  .form-row { grid-template-columns: 1fr; gap: 8px; }
+
+  /* Dashboard */
+  #page-dashboard > div[style*="grid-template-columns:2fr"] {
+    grid-template-columns: 1fr !important;
+  }
+
+  /* Profile 3 cols → 1 col */
+  #page-profile > div[style*="grid-template-columns:1fr 1fr 1fr"] {
+    grid-template-columns: 1fr !important;
+  }
+
+  /* Cards */
+  .card { padding: 12px; }
+  .card-header { margin-bottom: 10px; }
+
+  /* Tables → scrollable */
+  table { font-size: 12px; }
+  .card > table, .card > div > table { overflow-x: auto; display: block; }
+
+  /* Stats */
+  .stat { padding: 10px; }
+  .stat-value { font-size: 22px; }
+
+  /* Modals */
+  .modal { width: 95vw !important; max-height: 85vh; overflow-y: auto; }
+
+  /* Appointments */
+  .appt { padding: 8px; gap: 7px; }
+  .appt-time { width: 36px; font-size: 11px; }
+
+  /* Treasury filter */
+  #trs-custom-range { flex-direction: column !important; }
+
+  /* Photo grid */
+  #patient-photos img, #patient-photos > div { width: 80px !important; height: 80px !important; }
+}
+
+@media (max-width: 480px) {
+  .stats-grid { grid-template-columns: repeat(2, 1fr); }
+  .content { padding: 8px; }
+  .card { padding: 10px; border-radius: 8px; }
+}
+
+/* Print */
+@media print{.sidebar,.topbar,.btn,.modal-overlay{display:none!important;}.content{padding:0;}.main{overflow:visible;}}
+</style>
+</head>
+<body>
+
+<div class="app">
+<div class="sidebar">
+  <div class="logo">
+    <div class="logo-icon">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#185FA5" stroke-width="2.5"><path d="M12 2C8 2 5 5 5 9c0 2 .5 3.5 1 5l2 8h8l2-8c.5-1.5 1-3 1-5 0-4-3-7-7-7z"/></svg>
+    </div>
+    <div class="logo-name" id="clinic-name-display">عيادة الابتسامة</div>
+    <div class="logo-sub" style="color:#185FA5;font-weight:700;">● إيتاي</div>
+  </div>
+  <div class="nav">
+    <div class="nav-item active" onclick="sw('dashboard',this)">
+      <svg class="nav-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="2" y="2" width="5" height="5" rx="1"/><rect x="9" y="2" width="5" height="5" rx="1"/><rect x="2" y="9" width="5" height="5" rx="1"/><rect x="9" y="9" width="5" height="5" rx="1"/></svg>
+      الرئيسية
+    </div>
+    <div class="nav-item" onclick="sw('patients',this)">
+      <svg class="nav-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="8" cy="5" r="3"/><path d="M2 14c0-3.3 2.7-6 6-6s6 2.7 6 6"/></svg>
+      المرضى
+    </div>
+
+
+
+    <div class="nav-item" onclick="sw('inventory',this)">
+      <svg class="nav-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="2" y="2" width="12" height="4" rx="1"/><rect x="2" y="10" width="12" height="4" rx="1"/><path d="M2 8h12"/></svg>
+      المخزون
+    </div>
+
+    <div class="nav-item" onclick="sw('expenses',this)">
+      <svg class="nav-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M2 4h12M2 8h8M2 12h5"/><circle cx="12" cy="11" r="3"/><path d="M12 9.5v1.5l1 1"/></svg>
+      المصروفات
+    </div>
+    <div class="nav-item" onclick="sw('settings',this)">
+      <svg class="nav-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="8" cy="8" r="2.5"/><path d="M8 2v1.5M8 12.5V14M2 8h1.5M12.5 8H14"/></svg>
+      الإعدادات
+    </div>
+    <div class="nav-item" onclick="openTreasury()" style="border-top:1px solid var(--border);margin-top:4px;padding-top:12px;">
+      <svg class="nav-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="1" y="4" width="14" height="10" rx="1.5"/><path d="M4 4V3a1 1 0 0 1 1-1h6a1 1 0 0 1 1 1v1"/><circle cx="8" cy="9" r="2"/></svg>
+      الخزنة 🔒
+    </div>
+  </div>
+</div>
+
+<div class="main">
+  <div class="topbar">
+    <h1 id="page-title">الرئيسية</h1>
+    <div class="topbar-right">
+      <span class="date-badge" id="today-date"></span>
+      <span id="sync-status" style="font-size:11px;padding:4px 10px;border-radius:20px;background:#FAEEDA;color:#633806;">⏳ جاري الاتصال...</span>
+      <button class="btn btn-primary" onclick="openAddModal()">+ إضافة</button>
+    </div>
+  </div>
+
+  <div class="content">
+
+    <!-- DASHBOARD -->
+    <div class="page active" id="page-dashboard">
+      <div class="stats-grid">
+        <div class="stat"><div class="stat-label">مرضى اليوم</div><div class="stat-value" id="stat-today">0</div><div class="stat-sub c-blue" id="stat-today-sub">زيارة</div></div>
+        <div class="stat"><div class="stat-label">إجمالي المرضى</div><div class="stat-value" id="stat-total">0</div><div class="stat-sub c-green">مريض مسجل</div></div>
+        <div class="stat"><div class="stat-label">مواعيد الشهر</div><div class="stat-value" id="stat-month">0</div><div class="stat-sub c-blue">هذا الشهر</div></div>
+        <div class="stat" style="cursor:pointer;" onclick="openPendingModal()">
+          <div class="stat-label">فواتير معلقة ▾</div>
+          <div class="stat-value" id="stat-pending">0</div>
+          <div class="stat-sub c-red">اضغط للتفاصيل</div>
+        </div>
+      </div>
+
+      <!-- شريط المجموع المختار -->
+      <div id="dash-selection-bar" style="display:none;background:var(--blue-light);border:1px solid var(--blue);border-radius:var(--radius);padding:10px 16px;margin-bottom:14px;display:flex;justify-content:space-between;align-items:center;">
+        <span style="font-size:13px;color:var(--blue-dark);"><strong id="dash-sel-count">0</strong> مريض محدد</span>
+        <span style="font-size:15px;font-weight:700;color:var(--blue-dark);">إجمالي المحصّل: <strong id="dash-sel-total">0</strong> ج</span>
+        <button class="btn btn-sm" onclick="clearDashSelection()">إلغاء التحديد</button>
+      </div>
+
+      <div style="display:grid;grid-template-columns:2fr 1fr;gap:14px;align-items:start;">
+
+        <!-- Col 1: مواعيد اليوم -->
+        <div class="card">
+          <div class="card-header">
+            <span class="card-title" id="dash-date">مواعيد اليوم</span>
+            <div style="display:flex;align-items:center;gap:8px;">
+              <label style="display:flex;align-items:center;gap:5px;font-size:12px;cursor:pointer;">
+                <input type="checkbox" id="dash-select-all" onchange="dashSelectAll(this)" style="width:auto;">
+                تحديد الكل
+              </label>
+              <button class="btn btn-primary" style="font-size:15px;padding:8px 20px;font-weight:700;" onclick="toggleDashApptForm()">+ موعد</button>
+            </div>
+          </div>
+          <!-- فورم حجز موعد سريع -->
+          <div id="dash-appt-form" style="display:none;background:var(--bg2);border-radius:var(--radius);padding:12px;margin-bottom:12px;">
+            <div class="form-row">
+              <div class="form-g" style="position:relative;">
+                <label>المريض</label>
+                <input id="dash-appt-patient-name" placeholder="اكتب اسم المريض..." autocomplete="off" oninput="dashPatientSuggest(this.value)">
+                <input type="hidden" id="dash-appt-patient">
+                <div id="dash-patient-suggestions" style="display:none;position:absolute;top:100%;right:0;left:0;background:var(--bg);border:1px solid var(--border);border-radius:var(--radius);box-shadow:0 4px 16px rgba(0,0,0,0.12);z-index:999;max-height:180px;overflow-y:auto;"></div>
+              </div>
+              <div class="form-g"><label>الوقت</label>
+                <select id="dash-appt-time">
+                  <option value="12:00">12:00 PM</option><option value="12:30">12:30 PM</option>
+                  <option value="13:00">1:00 PM</option><option value="13:30">1:30 PM</option>
+                  <option value="14:00">2:00 PM</option><option value="14:30">2:30 PM</option>
+                  <option value="15:00">3:00 PM</option><option value="15:30">3:30 PM</option>
+                  <option value="16:00">4:00 PM</option><option value="16:30">4:30 PM</option>
+                  <option value="17:00">5:00 PM</option><option value="17:30">5:30 PM</option>
+                  <option value="18:00">6:00 PM</option><option value="18:30">6:30 PM</option>
+                  <option value="19:00">7:00 PM</option><option value="19:30">7:30 PM</option>
+                  <option value="20:00">8:00 PM</option>
+                </select>
+              </div>
+            </div>
+            <div class="form-g"><label>نوع الإجراء</label><input id="dash-appt-proc" placeholder="مثل: حشو، تنظيف..."></div>
+            <div style="display:flex;gap:6px;margin-top:6px;">
+              <button class="btn btn-primary btn-sm" style="flex:1;" onclick="saveDashAppt()">حفظ الموعد</button>
+              <button class="btn btn-sm" onclick="toggleDashApptForm()">إلغاء</button>
+            </div>
+          </div>
+          <div id="dash-monthly-list"><div style="text-align:center;padding:30px;color:var(--text2);">لا توجد زيارات اليوم</div></div>
+        </div>
+
+        <!-- Col 2: التقويم + القادمة + تنبيهات -->
+        <div>
+          <div class="card" style="margin-bottom:14px;">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
+              <span style="font-size:13px;font-weight:600;">إيتاي</span>
+              <div style="display:flex;gap:4px;align-items:center;">
+                <button class="btn btn-sm" onclick="dashCalPrev()" style="padding:2px 8px;">‹</button>
+                <span id="dash-cal-title" style="font-size:12px;min-width:80px;text-align:center;"></span>
+                <button class="btn btn-sm" onclick="dashCalNext()" style="padding:2px 8px;">›</button>
+              </div>
+            </div>
+            <div style="display:grid;grid-template-columns:repeat(7,1fr);gap:2px;margin-bottom:4px;" id="dash-cal-labels"></div>
+            <div style="display:grid;grid-template-columns:repeat(7,1fr);gap:2px;" id="dash-cal-days"></div>
+            <div id="dash-cal-appts" style="margin-top:10px;"></div>
+          </div>
+          <div class="card" style="margin-bottom:14px;">
+            <div class="card-header"><span class="card-title">المواعيد القادمة</span></div>
+            <div id="upcoming-appts"></div>
+          </div>
+          <div class="card">
+            <div class="card-header"><span class="card-title">تنبيهات</span></div>
+            <div id="alerts-list"></div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- PATIENT PROFILE -->
+    <div class="page" id="page-profile">
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:16px;">
+        <button class="btn btn-sm" onclick="sw('patients',null);document.querySelectorAll('.nav-item').forEach(n=>{if(n.textContent.includes('المرضى'))n.classList.add('active');else n.classList.remove('active')})">← رجوع للمرضى</button>
+        <span id="profile-title" style="font-size:16px;font-weight:700;"></span>
+      </div>
+
+      <!-- Top: info bar -->
+      <div class="card" id="profile-info-card" style="margin-bottom:14px;"></div>
+
+      <!-- 3 columns layout -->
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px;align-items:start;">
+
+        <!-- Col 1: الإجراءات -->
+        <div>
+          <div class="card">
+            <div class="card-header">
+              <span class="card-title">الإجراءات</span>
+              <button class="btn btn-primary btn-sm" onclick="toggleInlineForm('form-add-treatment')">+ إجراء</button>
+            </div>
+            <!-- Inline add treatment form -->
+            <div id="form-add-treatment" style="display:none;background:var(--bg2);border-radius:var(--radius);padding:12px;margin-bottom:12px;">
+              <input type="hidden" id="inline-tx-edit-id">
+              <div class="form-g">
+                <label>الشكوى الأساسية</label>
+                <input id="inline-tx-complaint" placeholder="مثل: ألم في الضرس، تسوس، كسر...">
+              </div>
+              <div class="form-g">
+                <label>الإجراء *</label>
+                <select id="inline-tx-proc-select" onchange="onProcSelectChange()" style="margin-bottom:5px;">
+                  <option value="">-- اختر من القائمة --</option>
+                </select>
+                <input id="inline-tx-proc" placeholder="أو اكتب إجراء غير موجود في القائمة..." style="font-size:12px;">
+              </div>
+              <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+                <div class="form-g">
+                  <label>إجمالي التكلفة (ج)</label>
+                  <input type="number" id="inline-tx-cost" value="0" min="0">
+                  <span id="inline-tx-price-hint" style="font-size:11px;color:var(--green);display:none;margin-top:3px;"></span>
+                </div>
+                <div class="form-g">
+                  <label>تاريخ الإجراء</label>
+                  <input type="date" id="inline-tx-date">
+                </div>
+              </div>
+              <div class="form-g"><label>ملاحظات أخرى</label>
+                <textarea id="inline-tx-notes" rows="2" placeholder="أي ملاحظات إضافية..."></textarea>
+              </div>
+              <!-- hidden fields kept for compatibility -->
+              <input type="hidden" id="inline-tx-tooth">
+              <input type="hidden" id="inline-tx-sessions" value="1">
+              <input type="hidden" id="inline-tx-status" value="جديد">
+              <div style="display:flex;gap:6px;margin-top:8px;">
+                <button class="btn btn-primary btn-sm" style="flex:1;" onclick="saveInlineTreatment()">حفظ</button>
+                <button class="btn btn-sm" onclick="closeTreatmentForm()">إلغاء</button>
+              </div>
+            </div>
+            <div id="profile-treatments"></div>
+          </div>
+        </div>
+
+        <!-- Col 2: المدفوعات -->
+        <div>
+          <div class="card">
+            <div class="card-header">
+              <span class="card-title">المدفوعات</span>
+              <button class="btn btn-primary btn-sm" onclick="toggleInlineForm('form-add-payment')">+ دفعة</button>
+            </div>
+
+            <!-- ملخص الإجراءات المالي -->
+            <div id="payment-summary" style="background:var(--bg2);border-radius:var(--radius);padding:10px;margin-bottom:12px;"></div>
+
+            <!-- Inline add payment form -->
+            <div id="form-add-payment" style="display:none;background:var(--bg2);border-radius:var(--radius);padding:12px;margin-bottom:12px;">
+              <div class="form-g"><label>الإجراء المرتبط (اختياري)</label>
+                <select id="inline-bill-tx" onchange="onTxSelectChange()"><option value="">-- كل الإجراءات --</option></select>
+              </div>
+              <div class="form-g"><label>البيان *</label><input id="inline-bill-svc" placeholder="مثل: دفعة أولى، دفعة ثانية..."></div>
+              <div class="form-g">
+                <label>المبلغ المدفوع الآن (ج) *</label>
+                <input type="number" id="inline-bill-paid" value="0" min="0" oninput="inlineCalcRemaining()">
+              </div>
+              <div style="background:var(--bg);border-radius:6px;padding:10px;font-size:13px;margin-bottom:10px;">
+                <div style="display:flex;justify-content:space-between;margin-bottom:4px;">
+                  <span style="color:var(--text2);">إجمالي الإجراءات</span>
+                  <strong id="inline-total-display">0 ج</strong>
+                </div>
+                <div style="display:flex;justify-content:space-between;margin-bottom:4px;">
+                  <span style="color:var(--text2);">سبق دفعه</span>
+                  <strong id="inline-prev-paid" style="color:var(--green);">0 ج</strong>
+                </div>
+                <div style="display:flex;justify-content:space-between;border-top:1px dashed var(--border);padding-top:6px;margin-top:4px;">
+                  <span style="color:var(--text2);font-weight:600;">المتبقي بعد هذه الدفعة</span>
+                  <strong id="inline-remaining" style="color:#993C1D;font-size:14px;">0 ج</strong>
+                </div>
+              </div>
+              <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+                <div class="form-g"><label>طريقة الدفع</label>
+                  <select id="inline-bill-method"><option>نقدي</option><option>بطاقة</option><option>تحويل</option><option>أقساط</option></select>
+                </div>
+                <div class="form-g"><label>التاريخ</label><input type="date" id="inline-bill-date"></div>
+              </div>
+              <div style="display:flex;gap:6px;margin-top:4px;">
+                <button class="btn btn-primary btn-sm" style="flex:1;" onclick="saveInlinePayment()">حفظ الدفعة</button>
+                <button class="btn btn-sm" onclick="toggleInlineForm('form-add-payment')">إلغاء</button>
+              </div>
+            </div>
+
+            <!-- Bills list -->
+            <div id="profile-bills"></div>
+            <!-- Totals -->
+            <div style="margin-top:10px;padding-top:10px;border-top:1px solid var(--border);">
+              <div style="display:flex;justify-content:space-between;font-size:13px;padding:3px 0;">
+                <span style="color:var(--text2);">إجمالي الإجراءات</span>
+                <span id="profile-bill-total" style="font-weight:700;"></span>
+              </div>
+              <div style="display:flex;justify-content:space-between;font-size:13px;padding:3px 0;">
+                <span style="color:var(--text2);">المدفوع</span>
+                <span id="profile-bill-paid" style="font-weight:700;color:var(--green);"></span>
+              </div>
+              <div style="display:flex;justify-content:space-between;font-size:13px;padding:3px 0;border-top:1px dashed var(--border);margin-top:4px;padding-top:6px;">
+                <span style="color:var(--text2);">المتبقي</span>
+                <span id="profile-bill-remaining" style="font-weight:700;color:#993C1D;font-size:15px;"></span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Col 3: سجل الزيارات -->
+        <div>
+          <div class="card">
+            <div class="card-header">
+              <span class="card-title">سجل الزيارات</span>
+              <button class="btn btn-primary btn-sm" onclick="toggleInlineForm('form-add-visit')">+ موعد</button>
+            </div>
+            <!-- فورم إضافة موعد مدمج -->
+            <div id="form-add-visit" style="display:none;background:var(--bg2);border-radius:var(--radius);padding:12px;margin-bottom:12px;">
+              <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+                <div class="form-g"><label>التاريخ *</label><input type="date" id="visit-date"></div>
+                <div class="form-g"><label>الوقت</label>
+                  <select id="visit-time">
+                    <option value="12:00">12:00 PM</option><option value="12:30">12:30 PM</option>
+                    <option value="13:00">1:00 PM</option><option value="13:30">1:30 PM</option>
+                    <option value="14:00">2:00 PM</option><option value="14:30">2:30 PM</option>
+                    <option value="15:00">3:00 PM</option><option value="15:30">3:30 PM</option>
+                    <option value="16:00">4:00 PM</option><option value="16:30">4:30 PM</option>
+                    <option value="17:00">5:00 PM</option><option value="17:30">5:30 PM</option>
+                    <option value="18:00">6:00 PM</option><option value="18:30">6:30 PM</option>
+                    <option value="19:00">7:00 PM</option><option value="19:30">7:30 PM</option>
+                    <option value="20:00">8:00 PM</option>
+                  </select>
+                </div>
+              </div>
+              <div class="form-g"><label>نوع الإجراء</label><input id="visit-proc" placeholder="مثل: حشو، تنظيف، خلع..."></div>
+              <div class="form-g"><label>ملاحظات</label><input id="visit-notes" placeholder="أي ملاحظات إضافية..."></div>
+              <div style="display:flex;gap:6px;margin-top:4px;">
+                <button class="btn btn-primary btn-sm" style="flex:1;" onclick="saveInlineVisit()">حفظ الموعد</button>
+                <button class="btn btn-sm" onclick="toggleInlineForm('form-add-visit')">إلغاء</button>
+              </div>
+            </div>
+            <div id="profile-appointments"></div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- صور المريض -->
+      <div class="card" style="margin-top:14px;">
+        <div class="card-header">
+          <span class="card-title">📷 صور المريض</span>
+<label class="btn btn-primary btn-sm" style="cursor:pointer;display:inline-flex;align-items:center;gap:5px;">
+            📷 إضافة صور
+            <input type="file" id="photo-upload" accept="image/*" multiple style="display:none;" onchange="uploadPatientPhotos(this)">
+          </label>
+        </div>
+        <div id="upload-progress" style="display:none;padding:8px;font-size:12px;color:var(--blue);">⏳ جاري الرفع...</div>
+        <div id="patient-photos" style="display:flex;flex-wrap:wrap;gap:10px;padding:4px 0;min-height:60px;"></div>
+      </div>
+    </div>
+    <div class="page" id="page-patients">
+      <div style="display:flex;gap:10px;margin-bottom:16px;">
+        <input placeholder="بحث باسم المريض أو رقم الملف أو الهاتف..." style="flex:1;" id="search-patients" oninput="renderPatients()">
+        <button class="btn btn-primary" onclick="openAddModal()">+ مريض جديد</button>
+      </div>
+
+      <div class="card" style="padding:0;overflow:hidden;">
+        <table>
+          <thead><tr><th>المريض</th><th>رقم الملف</th><th>العمر</th><th>الهاتف</th><th>آخر زيارة</th><th>الحالة</th><th></th></tr></thead>
+          <tbody id="patients-tbody"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- APPOINTMENTS -->
+    <div class="page" id="page-appointments">
+      <!-- header with month nav -->
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;">
+        <div style="display:flex;align-items:center;gap:8px;">
+          <button class="btn btn-sm" onclick="calPrev()">‹</button>
+          <span id="cal-title" style="font-size:15px;font-weight:700;min-width:130px;text-align:center;"></span>
+          <button class="btn btn-sm" onclick="calNext()">›</button>
+        </div>
+      </div>
+      <!-- Two calendars side by side -->
+      <div class="two-col">
+        <!-- Clinic 1: إيتاي -->
+        <div class="card">
+          <div class="card-header">
+            <span class="card-title">إيتاي</span>
+            <span id="cal-A-count" style="font-size:11px;color:var(--text2);"></span>
+          </div>
+          <div style="display:grid;grid-template-columns:repeat(7,1fr);gap:3px;margin-bottom:6px;" id="cal-labels-A"></div>
+          <div style="display:grid;grid-template-columns:repeat(7,1fr);gap:3px;" id="cal-days-A"></div>
+          <div id="selected-day-appts-A" style="margin-top:12px;"></div>
+        </div>
+        <!-- Clinic 2: السوالم -->
+        <div class="card">
+          <div class="card-header">
+            <span class="card-title">السوالم</span>
+            <span id="cal-B-count" style="font-size:11px;color:var(--text2);"></span>
+          </div>
+          <div style="display:grid;grid-template-columns:repeat(7,1fr);gap:3px;margin-bottom:6px;" id="cal-labels-B"></div>
+          <div style="display:grid;grid-template-columns:repeat(7,1fr);gap:3px;" id="cal-days-B"></div>
+          <div id="selected-day-appts-B" style="margin-top:12px;"></div>
+        </div>
+      </div>
+      <!-- hidden inputs still needed by old code -->
+      <input type="hidden" id="appt-date">
+      <input type="hidden" id="appt-time" value="12:00">
+      <input type="hidden" id="appt-type" value="جديد">
+      <textarea id="appt-notes" style="display:none;"></textarea>
+    </div>
+
+    <!-- TOOTH CHART -->
+    <div class="page" id="page-chart">
+      <div style="display:flex;gap:10px;margin-bottom:16px;align-items:center;">
+        <select id="chart-patient-select" style="width:220px;" onchange="loadPatientChart()"><option value="">-- اختر مريض --</option></select>
+        <span style="font-size:12px;color:var(--text2);">اضغط على السن لتغيير حالته</span>
+      </div>
+      <div class="tooth-chart" id="tooth-chart-area">
+        <div class="jaw-label">الفك العلوي</div>
+        <div class="jaw" id="upper-jaw"></div>
+        <div style="height:10px;"></div>
+        <div class="jaw" id="lower-jaw"></div>
+        <div class="jaw-label" style="margin-top:6px;">الفك السفلي</div>
+        <div class="legend">
+          <div class="legend-item"><div class="legend-dot" style="background:#c0dd97;border:1px solid #639922;"></div>سليم</div>
+          <div class="legend-item"><div class="legend-dot" style="background:#F09595;border:1px solid #E24B4A;"></div>تسوس</div>
+          <div class="legend-item"><div class="legend-dot" style="background:#FAC775;border:1px solid #BA7517;"></div>محشو</div>
+          <div class="legend-item"><div class="legend-dot" style="background:#AFA9EC;border:1px solid #7F77DD;"></div>تاج</div>
+          <div class="legend-item"><div class="legend-dot" style="background:var(--bg2);border:1.5px dashed var(--border2);"></div>مخلوع</div>
+        </div>
+      </div>
+      <div class="two-col">
+        <div class="card">
+          <div class="card-header"><span class="card-title">السن المحدد</span></div>
+          <div id="tooth-detail"><div style="text-align:center;padding:24px;color:var(--text2);font-size:13px;">اضغط على سن لعرض تفاصيله</div></div>
+        </div>
+        <div class="card">
+          <div class="card-header"><span class="card-title">ملخص خريطة الأسنان</span></div>
+          <div id="chart-summary"><div style="text-align:center;padding:24px;color:var(--text2);font-size:13px;">اختر مريض لعرض الملخص</div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- TREATMENTS -->
+    <div class="page" id="page-treatments">
+      <div class="tab-bar">
+        <button class="tab active" onclick="switchTab(this,'t-plans')">خطط العلاج</button>
+        <button class="tab" onclick="switchTab(this,'t-prices')">قائمة الأسعار</button>
+      </div>
+      <div id="t-plans">
+        <div class="card">
+          <div class="card-header"><span class="card-title">خطط العلاج النشطة</span><button class="btn btn-primary btn-sm" onclick="openTreatmentModal()">+ خطة جديدة</button></div>
+          <table><thead><tr><th>المريض</th><th>الإجراء</th><th>السن</th><th>الجلسات</th><th>التكلفة الكلية</th><th>المدفوع</th><th>الحالة</th><th></th></tr></thead>
+          <tbody id="treatments-tbody"></tbody></table>
+        </div>
+      </div>
+      <div id="t-prices" style="display:none;">
+        <div class="card">
+          <div class="card-header"><span class="card-title">قائمة الخدمات والأسعار</span><button class="btn btn-sm" onclick="openPriceModal()">+ إضافة خدمة</button></div>
+          <table><thead><tr><th>الخدمة</th><th>السعر (جنيه)</th><th>المدة</th><th></th></tr></thead>
+          <tbody id="prices-tbody"></tbody></table>
+        </div>
+      </div>
+    </div>
+
+    <!-- INVENTORY -->
+    <div class="page" id="page-inventory">
+      <div class="stats-grid">
+        <div class="stat"><div class="stat-label">إجمالي الأصناف</div><div class="stat-value" id="inv-total">0</div></div>
+        <div class="stat"><div class="stat-label">منخفض المخزون</div><div class="stat-value c-red" id="inv-low">0</div></div>
+        <div class="stat"><div class="stat-label">منتهي الصلاحية</div><div class="stat-value c-red" id="inv-expired">0</div></div>
+        <div class="stat"><div class="stat-label">بحاجة لطلب</div><div class="stat-value c-amber" id="inv-order">0</div></div>
+      </div>
+      <div class="card">
+        <div class="card-header"><span class="card-title">المواد والأدوات الطبية</span><button class="btn btn-primary btn-sm" onclick="openInvModal()">+ إضافة صنف</button></div>
+        <div id="inv-list"></div>
+      </div>
+    </div>
+
+    <!-- BILLING -->
+    <div class="page" id="page-billing">
+      <div class="stats-grid">
+        <div class="stat"><div class="stat-label">إجمالي الإيرادات</div><div class="stat-value" id="bill-total">0</div><div class="stat-sub" style="color:var(--text2)">جنيه</div></div>
+        <div class="stat"><div class="stat-label">مدفوع</div><div class="stat-value c-green" id="bill-paid">0</div></div>
+        <div class="stat"><div class="stat-label">متبقي</div><div class="stat-value c-red" id="bill-unpaid">0</div></div>
+        <div class="stat"><div class="stat-label">عدد الفواتير</div><div class="stat-value" id="bill-count">0</div></div>
+      </div>
+      <div class="card">
+        <div class="card-header"><span class="card-title">الفواتير</span><button class="btn btn-primary btn-sm" onclick="openBillModal()">+ فاتورة جديدة</button></div>
+        <table><thead><tr><th>#</th><th>المريض</th><th>الإجراء</th><th>إجمالي الإجراء</th><th>المدفوع</th><th>المتبقي</th><th>التاريخ</th><th>الحالة</th><th></th></tr></thead>
+        <tbody id="bills-tbody"></tbody></table>
+      </div>
+    </div>
+
+    <!-- EXPENSES -->
+    <div class="page" id="page-expenses">
+      <div class="stats-grid">
+        <div class="stat"><div class="stat-label">إجمالي المصروفات</div><div class="stat-value c-red" id="exp-total">0</div></div>
+        <div class="stat"><div class="stat-label">خامات وموردين</div><div class="stat-value" id="exp-materials">0</div></div>
+        <div class="stat"><div class="stat-label">معامل</div><div class="stat-value" id="exp-labs">0</div></div>
+        <div class="stat"><div class="stat-label">مرتبات وتشغيل</div><div class="stat-value" id="exp-ops">0</div></div>
+      </div>
+      <div class="card">
+        <div class="card-header"><span class="card-title">سجل المصروفات</span><button class="btn btn-primary btn-sm" onclick="openExpModal()">+ مصروف جديد</button></div>
+        <table>
+          <thead><tr><th>البند</th><th>النوع</th><th>المورد / الجهة</th><th>التاريخ</th><th>المبلغ (ج)</th><th>ملاحظات</th><th></th></tr></thead>
+          <tbody id="expenses-tbody"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- TREASURY PAGE -->
+    <div class="page" id="page-treasury">
+
+      <!-- فلتر الفترة -->
+      <div class="card" style="margin-bottom:14px;">
+        <div style="display:flex;gap:10px;align-items:flex-end;flex-wrap:wrap;">
+          <div class="form-g" style="margin:0;flex:0 0 auto;">
+            <label style="font-size:11px;color:var(--text2);">عرض</label>
+            <select id="trs-period" onchange="onTrsPeriodChange()" style="width:140px;">
+              <option value="month">الشهر الحالي</option>
+              <option value="custom">فترة محددة</option>
+            </select>
+          </div>
+          <div id="trs-custom-range" style="display:none;display:flex;gap:8px;align-items:flex-end;flex-wrap:wrap;">
+            <div class="form-g" style="margin:0;">
+              <label style="font-size:11px;color:var(--text2);">من</label>
+              <input type="date" id="trs-from" style="width:140px;">
+            </div>
+            <div class="form-g" style="margin:0;">
+              <label style="font-size:11px;color:var(--text2);">إلى</label>
+              <input type="date" id="trs-to" style="width:140px;">
+            </div>
+            <button class="btn btn-primary btn-sm" onclick="renderTreasury()">عرض</button>
+          </div>
+          <span id="trs-period-label" style="font-size:12px;color:var(--text2);padding-bottom:7px;"></span>
+        </div>
+      </div>
+
+      <!-- Stats -->
+      <div class="stats-grid" style="margin-bottom:14px;">
+        <div class="stat"><div class="stat-label">الإيرادات</div><div class="stat-value c-green" id="trs-revenue">0</div><div class="stat-sub" style="color:var(--text2)">جنيه</div></div>
+        <div class="stat"><div class="stat-label">المصروفات</div><div class="stat-value c-red" id="trs-expenses">0</div><div class="stat-sub" style="color:var(--text2)">جنيه</div></div>
+        <div class="stat"><div class="stat-label">صافي الربح</div><div class="stat-value" id="trs-net">0</div><div class="stat-sub" style="color:var(--text2)">جنيه</div></div>
+        <div class="stat" style="cursor:pointer;" onclick="togglePendingDetails()">
+          <div class="stat-label">متبقي على العملاء ▾</div>
+          <div class="stat-value c-amber" id="trs-pending">0</div>
+          <div class="stat-sub" style="color:var(--text2)">اضغط للتفاصيل</div>
+        </div>
+      </div>
+
+      <!-- تفاصيل المتبقي على العملاء -->
+      <div id="trs-pending-details" style="display:none;margin-bottom:14px;">
+        <div class="card">
+          <div class="card-header"><span class="card-title">تفاصيل المتبقي على العملاء</span><button class="btn btn-sm" onclick="togglePendingDetails()">إغلاق</button></div>
+          <div id="trs-pending-list"></div>
+        </div>
+      </div>
+
+      <!-- قسمين: إيرادات + مصروفات -->
+      <div class="two-col">
+        <div class="card">
+          <div class="card-header"><span class="card-title">الإيرادات</span><span id="trs-rev-count" style="font-size:11px;color:var(--text2);"></span></div>
+          <div id="trs-revenue-list"></div>
+        </div>
+        <div class="card">
+          <div class="card-header"><span class="card-title">المصروفات</span><span id="trs-exp-count" style="font-size:11px;color:var(--text2);"></span></div>
+          <div id="trs-expenses-list"></div>
+        </div>
+      </div>
+
+      <!-- تغيير كلمة السر -->
+      <div class="card" style="margin-top:0;">
+        <div style="font-size:13px;font-weight:600;margin-bottom:10px;">🔑 تغيير كلمة السر</div>
+        <div style="display:flex;gap:8px;">
+          <input type="password" id="trs-new-pass" placeholder="كلمة السر الجديدة" style="flex:1;">
+          <input type="password" id="trs-confirm-pass" placeholder="تأكيد" style="flex:1;">
+          <button class="btn btn-primary" onclick="changeTreasuryPass()">حفظ</button>
+        </div>
+      </div>
+    </div>
+    <div class="page" id="page-settings">
+      <div class="two-col">
+        <div class="card">
+          <div class="card-header"><span class="card-title">بيانات العيادة</span></div>
+          <div class="form-g"><label>اسم العيادة</label><input id="s-clinic-name" placeholder="عيادة الابتسامة"></div>
+          <div class="form-g"><label>اسم الطبيب الرئيسي</label><input id="s-doctor-name" placeholder="د. محمد أحمد"></div>
+          <div class="form-g"><label>العنوان</label><input id="s-address" placeholder="القاهرة، مصر"></div>
+          <div class="form-g"><label>رقم الهاتف</label><input id="s-phone" placeholder="010XXXXXXXX"></div>
+          <div class="form-g">
+            <label>رسالة طلب التقييم (WhatsApp)</label>
+            <textarea id="s-review-msg" rows="3" placeholder="مثال: مرحباً {name}، شكراً لزيارتك عيادتنا اليوم. نسعد برأيك في خدمتنا..."></textarea>
+            <span style="font-size:11px;color:var(--text2);margin-top:3px;">استخدم {name} لاسم المريض تلقائياً</span>
+          </div>
+          <button class="btn btn-primary" onclick="saveSettings()">حفظ الإعدادات</button>
+        </div>
+        <div class="card">
+          <div class="card-header"><span class="card-title">الأطباء</span></div>
+          <div id="doctors-list" style="margin-bottom:12px;"></div>
+          <div style="display:flex;gap:8px;">
+            <input id="new-doctor-name" placeholder="اسم الطبيب" style="flex:1;">
+            <input id="new-doctor-spec" placeholder="التخصص" style="flex:1;">
+            <button class="btn btn-primary btn-sm" onclick="addDoctor()">إضافة</button>
+          </div>
+        </div>
+      </div>
+      <div class="card" style="margin-top:0;">
+        <div class="card-header"><span class="card-title">قائمة أسعار الإجراءات</span></div>
+        <div style="display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap;">
+          <input id="new-price-name" placeholder="اسم الإجراء" style="flex:2;min-width:140px;">
+          <input type="number" id="new-price-val" placeholder="السعر (ج)" style="flex:1;min-width:90px;" min="0">
+          <input id="new-price-dur" placeholder="المدة (اختياري)" style="flex:1;min-width:90px;">
+          <button class="btn btn-primary btn-sm" onclick="addPrice()">+ إضافة</button>
+        </div>
+        <table>
+          <thead><tr><th>الإجراء</th><th>السعر (ج)</th><th>المدة</th><th></th></tr></thead>
+          <tbody id="settings-prices-tbody"></tbody>
+        </table>
+      </div>
+      <div class="card" style="margin-top:0;">
+        <div class="card-header"><span class="card-title">النسخ الاحتياطي</span></div>
+        <div style="display:flex;gap:10px;flex-wrap:wrap;">
+          <button class="btn btn-primary" onclick="openModal('modal-firebase-setup')">☁ إعداد Firebase Sync</button>
+          <button class="btn" onclick="exportData()">⬇ تصدير البيانات (JSON)</button>
+          <button class="btn" onclick="document.getElementById('import-file').click()">⬆ استيراد البيانات</button>
+          <input type="file" id="import-file" accept=".json" style="display:none;" onchange="importData(this)">
+          <button class="btn btn-danger" onclick="if(confirm('هل أنت متأكد من حذف كل البيانات؟')){clearData();}">🗑 حذف كل البيانات</button>
+        </div>
+        <div style="font-size:12px;color:var(--text2);margin-top:10px;">البيانات محفوظة تلقائياً على جهازك. يُنصح بعمل نسخة احتياطية بشكل دوري.</div>
+      </div>
+    </div>
+
+  </div>
+</div>
+</div>
+
+<!-- PENDING BILLS MODAL -->
+<div class="modal-overlay" id="modal-pending-bills">
+  <div class="modal" style="width:560px;max-height:80vh;">
+    <div class="modal-header">
+      <span class="modal-title">الفواتير المعلقة والجزئية</span>
+      <button class="xbtn" onclick="closeModal('modal-pending-bills')">×</button>
+    </div>
+    <div id="pending-bills-content"></div>
+  </div>
+</div>
+
+<!-- TREASURY PASSWORD MODAL -->
+<div class="modal-overlay" id="modal-treasury-pass">
+  <div class="modal" style="width:360px;">
+    <div class="modal-header">
+      <span class="modal-title">🔒 الخزنة — كلمة السر</span>
+      <button class="xbtn" onclick="closeModal('modal-treasury-pass')">×</button>
+    </div>
+    <div style="text-align:center;padding:10px 0 16px;">
+      <svg width="48" height="48" viewBox="0 0 48 48" fill="none" style="margin-bottom:8px;"><rect x="8" y="18" width="32" height="22" rx="4" fill="#E6F1FB" stroke="#185FA5" stroke-width="1.5"/><path d="M16 18v-6a8 8 0 0 1 16 0v6" stroke="#185FA5" stroke-width="1.5" stroke-linecap="round"/><circle cx="24" cy="29" r="3" fill="#185FA5"/><path d="M24 32v3" stroke="#185FA5" stroke-width="1.5" stroke-linecap="round"/></svg>
+      <div style="font-size:13px;color:var(--text2);margin-bottom:14px;">أدخل كلمة السر للدخول للخزنة</div>
+      <input type="password" id="treasury-pass-input" placeholder="كلمة السر" style="text-align:center;font-size:16px;letter-spacing:4px;" onkeydown="if(event.key==='Enter')checkTreasuryPass()">
+      <div id="treasury-pass-error" style="color:#993C1D;font-size:12px;margin-top:8px;display:none;">❌ كلمة السر غلط</div>
+    </div>
+    <div style="display:flex;gap:8px;justify-content:center;">
+      <button class="btn" onclick="closeModal('modal-treasury-pass')">إلغاء</button>
+      <button class="btn btn-primary" onclick="checkTreasuryPass()">دخول</button>
+    </div>
+  </div>
+</div>
+
+<!-- ADD PATIENT MODAL -->
+<div class="modal-overlay" id="modal-add-patient">
+  <div class="modal">
+    <div class="modal-header"><span class="modal-title">إضافة مريض جديد</span><button class="xbtn" onclick="closeModal('modal-add-patient')">×</button></div>
+    <div class="form-g" style="position:relative;">
+      <label>الاسم *</label>
+      <input id="p-fname" placeholder="اسم المريض كاملاً" autocomplete="off" oninput="showPatientSuggestions(this.value)">
+      <div id="patient-suggestions" style="display:none;position:absolute;top:100%;right:0;left:0;background:var(--bg);border:1px solid var(--border);border-radius:var(--radius);box-shadow:0 4px 16px rgba(0,0,0,0.12);z-index:999;max-height:200px;overflow-y:auto;"></div>
+    </div>
+    <div class="form-row">
+      <div class="form-g"><label>العمر</label><input type="number" id="p-age" placeholder="مثل: 35" min="1" max="120" oninput="ageToYear()"></div>
+      <div class="form-g"><label>سنة الميلاد</label><input type="number" id="p-birthyear" placeholder="مثل: 1990" min="1900" max="2025" oninput="yearToAge()"></div>
+    </div>
+    <div class="form-row">
+      <div class="form-g"><label>رقم الهاتف *</label><input id="p-phone" placeholder="01XXXXXXXXX"></div>
+      <div class="form-g"><label>رقم هاتف آخر</label><input id="p-email" placeholder="01XXXXXXXXX"></div>
+    </div>
+    <div class="form-g"><label>العنوان</label><input id="p-address" placeholder="المدينة، الحي..."></div>
+    <div class="form-row">
+      <div class="form-g"><label>حساسية من أدوية</label><input id="p-allergy" placeholder="مثل: بنسلين..."></div>
+      <div class="form-g"><label>أمراض مزمنة</label><input id="p-chronic" placeholder="مثل: سكري، ضغط..."></div>
+    </div>
+    <div class="form-g"><label>ملاحظات</label><textarea id="p-notes" rows="2"></textarea></div>
+    <div style="display:flex;justify-content:flex-end;gap:8px;margin-top:16px;">
+      <button class="btn" onclick="closeModal('modal-add-patient')">إلغاء</button>
+      <button class="btn btn-primary" onclick="savePatient()">حفظ المريض</button>
+    </div>
+  </div>
+</div>
+
+<!-- TREATMENT MODAL -->
+<div class="modal-overlay" id="modal-treatment">
+  <div class="modal">
+    <div class="modal-header"><span class="modal-title">إضافة خطة علاج</span><button class="xbtn" onclick="closeModal('modal-treatment')">×</button></div>
+    <div class="form-g"><label>المريض *</label><select id="tx-patient"><option value="">-- اختر مريض --</option></select></div>
+    <div class="form-row">
+      <div class="form-g"><label>الإجراء *</label><input id="tx-procedure" placeholder="مثل: حشو عصب"></div>
+      <div class="form-g"><label>رقم السن</label><input id="tx-tooth" placeholder="مثل: 16، 26..."></div>
+    </div>
+    <div class="form-row">
+      <div class="form-g"><label>عدد الجلسات الكلي</label><input type="number" id="tx-sessions-total" value="1" min="1"></div>
+      <div class="form-g"><label>الجلسات المكتملة</label><input type="number" id="tx-sessions-done" value="0" min="0"></div>
+    </div>
+    <div class="form-row">
+      <div class="form-g"><label>التكلفة الكلية (ج)</label><input type="number" id="tx-cost" value="0"></div>
+      <div class="form-g"><label>المبلغ المدفوع (ج)</label><input type="number" id="tx-paid" value="0"></div>
+    </div>
+    <div class="form-g"><label>الحالة</label><select id="tx-status"><option>جاري</option><option>انتظار</option><option>مكتمل</option><option>ملغي</option></select></div>
+    <div class="form-g"><label>ملاحظات</label><textarea id="tx-notes" rows="2"></textarea></div>
+    <div style="display:flex;justify-content:flex-end;gap:8px;margin-top:16px;">
+      <button class="btn" onclick="closeModal('modal-treatment')">إلغاء</button>
+      <button class="btn btn-primary" onclick="saveTreatment()">حفظ</button>
+    </div>
+  </div>
+</div>
+
+<!-- INVENTORY MODAL -->
+<div class="modal-overlay" id="modal-inventory">
+  <div class="modal">
+    <div class="modal-header"><span class="modal-title">إضافة صنف جديد</span><button class="xbtn" onclick="closeModal('modal-inventory')">×</button></div>
+    <div class="form-g"><label>اسم الصنف *</label><input id="inv-name" placeholder="مثل: إبر تخدير كاربول"></div>
+    <div class="form-row">
+      <div class="form-g"><label>الكمية الحالية *</label><input type="number" id="inv-qty" value="0" min="0"></div>
+      <div class="form-g"><label>الحد الأدنى للتنبيه</label><input type="number" id="inv-min" value="10" min="0"></div>
+    </div>
+    <div class="form-row">
+      <div class="form-g"><label>الوحدة</label><input id="inv-unit" placeholder="إبرة، علبة، كيلو..."></div>
+      <div class="form-g"><label>تاريخ الانتهاء</label><input type="date" id="inv-expiry"></div>
+    </div>
+    <div style="display:flex;justify-content:flex-end;gap:8px;margin-top:16px;">
+      <button class="btn" onclick="closeModal('modal-inventory')">إلغاء</button>
+      <button class="btn btn-primary" onclick="saveInventory()">حفظ</button>
+    </div>
+  </div>
+</div>
+
+<!-- BILL MODAL -->
+<div class="modal-overlay" id="modal-bill">
+  <div class="modal">
+    <div class="modal-header"><span class="modal-title">إنشاء فاتورة / دفعة</span><button class="xbtn" onclick="closeModal('modal-bill')">×</button></div>
+    <div class="form-g"><label>المريض *</label><select id="bill-patient" onchange="loadPatientTreatments()"><option value="">-- اختر مريض --</option></select></div>
+    <div class="form-g"><label>الإجراء (اختياري — اربطه بخطة علاج)</label><select id="bill-treatment-link"><option value="">-- غير مرتبط --</option></select></div>
+    <div class="form-g"><label>اسم الخدمة / الإجراء *</label><input id="bill-service" placeholder="مثل: حشو عصب، تنظيف..."></div>
+    <div class="form-row">
+      <div class="form-g">
+        <label>إجمالي مبلغ الإجراء (ج)</label>
+        <input type="number" id="bill-total-amount" value="0" oninput="calcRemaining()">
+      </div>
+      <div class="form-g">
+        <label>المبلغ المدفوع الآن (ج) *</label>
+        <input type="number" id="bill-amount" value="0" oninput="calcRemaining()">
+      </div>
+    </div>
+    <div style="background:var(--bg2);border-radius:var(--radius);padding:10px 14px;margin-bottom:12px;display:flex;gap:20px;font-size:13px;">
+      <span>المتبقي: <strong id="bill-remaining-display" style="color:#993C1D;">0 ج</strong></span>
+      <span>المدفوع سابقاً: <strong id="bill-prev-paid-display" style="color:var(--green);">0 ج</strong></span>
+    </div>
+    <div class="form-row">
+      <div class="form-g"><label>التاريخ</label><input type="date" id="bill-date"></div>
+      <div class="form-g"><label>طريقة الدفع</label><select id="bill-method"><option>نقدي</option><option>بطاقة</option><option>تحويل بنكي</option><option>أقساط</option></select></div>
+    </div>
+    <div style="display:flex;justify-content:flex-end;gap:8px;margin-top:16px;">
+      <button class="btn" onclick="closeModal('modal-bill')">إلغاء</button>
+      <button class="btn btn-primary" onclick="saveBill()">حفظ الفاتورة</button>
+    </div>
+  </div>
+</div>
+
+<!-- EXPENSES MODAL -->
+<div class="modal-overlay" id="modal-expense">
+  <div class="modal" style="width:480px;">
+    <div class="modal-header"><span class="modal-title">إضافة مصروف</span><button class="xbtn" onclick="closeModal('modal-expense')">×</button></div>
+    <div class="form-g"><label>نوع المصروف *</label>
+      <select id="exp-type" onchange="updateExpSupplierLabel()">
+        <option value="خامات">خامات ومستلزمات (مورد)</option>
+        <option value="معمل">معمل أسنان</option>
+        <option value="مرتبات">مرتبات</option>
+        <option value="كهرباء">كهرباء</option>
+        <option value="مياه">مياه</option>
+        <option value="نظافة">نظافة</option>
+        <option value="إيجار">إيجار</option>
+        <option value="أخرى">أخرى</option>
+      </select>
+    </div>
+    <div class="form-g"><label id="exp-supplier-label">اسم المورد *</label><input id="exp-supplier" placeholder="مثل: شركة دنتال سبلاي..."></div>
+    <div class="form-g"><label>البند / التفاصيل *</label><input id="exp-item" placeholder="مثل: إبر تخدير، أشغال طقم علوي..."></div>
+    <div class="form-row">
+      <div class="form-g"><label>المبلغ (ج) *</label><input type="number" id="exp-amount" value="0" min="0"></div>
+      <div class="form-g"><label>التاريخ</label><input type="date" id="exp-date"></div>
+    </div>
+    <div class="form-g"><label>ملاحظات</label><input id="exp-notes" placeholder="أي ملاحظات إضافية..."></div>
+    <div style="display:flex;justify-content:flex-end;gap:8px;margin-top:16px;">
+      <button class="btn" onclick="closeModal('modal-expense')">إلغاء</button>
+      <button class="btn btn-primary" onclick="saveExpense()">حفظ</button>
+    </div>
+  </div>
+</div>
+
+<!-- EDIT PATIENT MODAL -->
+<div class="modal-overlay" id="modal-edit-patient">
+  <div class="modal">
+    <div class="modal-header"><span class="modal-title">تعديل بيانات المريض</span><button class="xbtn" onclick="closeModal('modal-edit-patient')">×</button></div>
+    <input type="hidden" id="edit-p-id">
+    <div class="form-g"><label>الاسم *</label><input id="edit-p-fname"></div>
+    <div class="form-row">
+      <div class="form-g"><label>العمر</label><input type="number" id="edit-p-age" min="1" max="120"></div>
+      <div class="form-g"><label>رقم الهاتف *</label><input id="edit-p-phone"></div>
+    </div>
+    <div class="form-row">
+      <div class="form-g"><label>رقم هاتف آخر</label><input id="edit-p-email"></div>
+      <div class="form-g"><label>العنوان</label><input id="edit-p-address"></div>
+    </div>
+    <div class="form-row">
+      <div class="form-g"><label>حساسية من أدوية</label><input id="edit-p-allergy"></div>
+      <div class="form-g"><label>أمراض مزمنة</label><input id="edit-p-chronic"></div>
+    </div>
+    <div class="form-g"><label>الحالة</label>
+      <select id="edit-p-status"><option>جديد</option><option>منتظم</option><option>متابعة</option><option>مكتمل</option></select>
+    </div>
+    <div class="form-g"><label>ملاحظات</label><textarea id="edit-p-notes" rows="2"></textarea></div>
+    <div style="display:flex;justify-content:flex-end;gap:8px;margin-top:16px;">
+      <button class="btn" onclick="closeModal('modal-edit-patient')">إلغاء</button>
+      <button class="btn btn-primary" onclick="updatePatient()">حفظ التعديلات</button>
+    </div>
+  </div>
+</div>
+
+<!-- PRICE MODAL -->
+<div class="modal-overlay" id="modal-price">
+  <div class="modal" style="width:400px;">
+    <div class="modal-header"><span class="modal-title">إضافة خدمة</span><button class="xbtn" onclick="closeModal('modal-price')">×</button></div>
+    <div class="form-g"><label>اسم الخدمة *</label><input id="price-name" placeholder="مثل: تنظيف وتلميع"></div>
+    <div class="form-row">
+      <div class="form-g"><label>السعر (ج)</label><input type="number" id="price-value" value="0"></div>
+      <div class="form-g"><label>المدة</label><input id="price-duration" placeholder="مثل: 45 دقيقة"></div>
+    </div>
+    <div style="display:flex;justify-content:flex-end;gap:8px;margin-top:16px;">
+      <button class="btn" onclick="closeModal('modal-price')">إلغاء</button>
+      <button class="btn btn-primary" onclick="savePrice()">حفظ</button>
+    </div>
+  </div>
+</div>
+
+<!-- FIREBASE SETUP MODAL -->
+<div class="modal-overlay" id="modal-firebase-setup">
+  <div class="modal" style="width:520px;">
+    <div class="modal-header">
+      <span class="modal-title">☁ إعداد Firebase Sync</span>
+      <button class="xbtn" onclick="closeModal('modal-firebase-setup')">×</button>
+    </div>
+
+    <div style="background:#E6F1FB;border-radius:8px;padding:12px 14px;margin-bottom:16px;font-size:13px;color:#0C447C;line-height:1.7;">
+      <strong>خطوات سريعة:</strong><br>
+      1. روح على <a href="https://firebase.google.com" target="_blank" style="color:#185FA5;">firebase.google.com</a> وسجّل بحساب Google<br>
+      2. اضغط <strong>Add project</strong> ← اكتب اسم ← Continue حتى النهاية<br>
+      3. من القائمة اضغط <strong>Firestore Database</strong> ← Create database ← Start in test mode<br>
+      4. اضغط أيقونة الترس (⚙) ← <strong>Project Settings</strong> ← أيقونة <strong>&lt;/&gt;</strong> ← Register app<br>
+      5. انسخ البيانات من <code>firebaseConfig = { ... }</code> والصقها هنا:
+    </div>
+
+    <div class="form-row">
+      <div class="form-g"><label>apiKey *</label><input id="fb-apiKey" placeholder="AIzaSy..."></div>
+      <div class="form-g"><label>projectId *</label><input id="fb-projectId" placeholder="my-clinic-12345"></div>
+    </div>
+    <div class="form-row">
+      <div class="form-g"><label>authDomain</label><input id="fb-authDomain" placeholder="my-clinic.firebaseapp.com"></div>
+      <div class="form-g"><label>storageBucket</label><input id="fb-storageBucket" placeholder="my-clinic.appspot.com"></div>
+    </div>
+    <div class="form-row">
+      <div class="form-g"><label>messagingSenderId</label><input id="fb-messagingSenderId" placeholder="123456789"></div>
+      <div class="form-g"><label>appId</label><input id="fb-appId" placeholder="1:123:web:abc..."></div>
+    </div>
+
+    <div style="background:#FAEEDA;border-radius:8px;padding:10px 14px;margin:12px 0;font-size:12px;color:#633806;">
+      💡 البيانات دي بتتحفظ على جهازك بس — مش بتتبعت لأي مكان تاني
+    </div>
+
+    <div style="display:flex;justify-content:flex-end;gap:8px;margin-top:4px;">
+      <button class="btn" onclick="closeModal('modal-firebase-setup')">لاحقاً</button>
+      <button class="btn btn-primary" onclick="saveFirebaseConfig()">💾 حفظ والاتصال</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ====== FIREBASE CONFIG (محفوظة في localStorage) ======
+function getFirebaseConfig() {
+  try { return JSON.parse(localStorage.getItem('dental_fb_config') || 'null'); }
+  catch { return null; }
+}
+const firebaseConfig = getFirebaseConfig() || {
+  apiKey: "AIzaSyCUIFbdE0a9cXrAQNRdDjCp5fTgtIIfVbk",
+  authDomain: "dental-clinic-ea306.firebaseapp.com",
+  projectId: "dental-clinic-ea306",
+  storageBucket: "dental-clinic-ea306.appspot.com",
+  messagingSenderId: "690314091272",
+  appId: "1:690314091272:web:e3a5abdf2c507a6ea76abd"
+};
+
+let db = null;
+let FIREBASE_OK = false;
+let FIREBASE_LOADING = false;
+const COLLECTIONS = ['patients','appointments','treatments','inventory','billing','prices','doctors','tooth_charts','settings'];
+
+async function initFirebase() {
+  try {
+    if (!firebaseConfig.apiKey) {
+      updateSyncStatus('local', '⚠ وضع محلي — اضغط لإعداد Firebase');
+      document.getElementById('sync-status').style.cursor = 'pointer';
+      document.getElementById('sync-status').onclick = () => openModal('modal-firebase-setup');
+      return false;
+    }
+    firebase.initializeApp(firebaseConfig);
+    db = firebase.firestore();
+    // Test connection
+    await db.collection('_ping').doc('test').set({t: Date.now()});
+    FIREBASE_OK = true;
+    updateSyncStatus('online', '☁ متصل بـ Firebase — sync فوري');
+    // setupRealtimeListeners يشتغل بعد loadFromFirebase
+    return true;
+  } catch(e) {
+    console.warn('Firebase error:', e.message);
+    updateSyncStatus('local', '⚠ وضع محلي (تأكد من بيانات Firebase)');
+    return false;
+  }
+}
+
+function updateSyncStatus(mode, msg) {
+  const el = document.getElementById('sync-status');
+  if (!el) return;
+  el.textContent = msg;
+  el.style.background = mode === 'online' ? '#E1F5EE' : '#FAEEDA';
+  el.style.color = mode === 'online' ? '#0F6E56' : '#633806';
+}
+
+// Real-time listeners — أي تغيير على جهاز يظهر فوراً
+function setupRealtimeListeners() {
+  const reRenders = {
+    patients: ()=>{ renderPatients(); renderDashboard(); populateSelects(); },
+    appointments: ()=>{ renderCal(); renderDashboard(); },
+    treatments: renderTreatments,
+    inventory: renderInventory,
+    billing: ()=>{ renderBilling(); renderDashboard(); },
+  };
+  ['patients','appointments','treatments','inventory','billing'].forEach(col => {
+    db.collection(CLINIC_ID+'_'+col).onSnapshot(snap => {
+      if(FIREBASE_LOADING) return; // انتظر لحد ما loadFromFirebase يخلص
+      const docs = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+      localStorage.setItem(CLINIC_PREFIX + col, JSON.stringify(docs));
+      if (reRenders[col]) reRenders[col]();
+    });
+  });
+}
+
+// ====== CLINIC IDENTITY ======
+// غيّر هذه القيمة في كل نسخة: 'itay' أو 'sowalim'
+const CLINIC_ID = 'itay';
+const CLINIC_PREFIX = 'dental_' + CLINIC_ID + '_';
+
+// ====== DATA LAYER ======
+const DB = {
+  get(k) {
+    try { return JSON.parse(localStorage.getItem(CLINIC_PREFIX + k) || 'null'); }
+    catch { return null; }
+  },
+  set(k, v, skipFirebase=false) {
+    localStorage.setItem(CLINIC_PREFIX + k, JSON.stringify(v));
+    if (FIREBASE_OK && db && !skipFirebase) this._syncToFirebase(k, v);
+  },
+  async _syncToFirebase(k, v) {
+    try {
+      if (Array.isArray(v)) {
+        // For arrays: save each item as a document
+        const batch = db.batch();
+        // Clear old docs first for simple collections
+        const existing = await db.collection(CLINIC_ID+'_'+k).get();
+        existing.docs.forEach(d => batch.delete(d.ref));
+        v.forEach(item => {
+          const ref = db.collection(CLINIC_ID+'_'+k).doc(item.id || uid());
+          batch.set(ref, item);
+        });
+        await batch.commit();
+      } else if (typeof v === 'object' && v !== null) {
+        // For objects (settings, tooth_charts): save as single doc
+        await db.collection(CLINIC_ID+'_config').doc(k).set(v);
+      }
+    } catch(e) {
+      console.warn('Sync error for', k, e.message);
+    }
+  },
+  async loadFromFirebase() {
+    if (!FIREBASE_OK || !db) return;
+    try {
+      FIREBASE_LOADING = true;
+      updateSyncStatus('online', '☁ جاري مزامنة البيانات...');
+      const cols = ['patients','appointments','treatments','inventory','billing','prices','doctors'];
+      for (const col of cols) {
+        const snap = await db.collection(CLINIC_ID+'_'+col).get();
+        const localData = DB.get(col) || [];
+        if (!snap.empty) {
+          // Firebase فيه بيانات — خذها
+          const docs = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+          localStorage.setItem(CLINIC_PREFIX + col, JSON.stringify(docs));
+        } else if (localData.length > 0) {
+          // Firebase فاضي لكن عندنا بيانات محلية — ارفعها
+          updateSyncStatus('online', `☁ جاري رفع ${col}...`);
+          const batch = db.batch();
+          localData.forEach(item => {
+            const ref = db.collection(CLINIC_ID+'_'+col).doc(item.id || uid());
+            batch.set(ref, item);
+          });
+          await batch.commit();
+        }
+      }
+      // Config
+      for (const key of ['settings','tooth_charts']) {
+        const doc = await db.collection(CLINIC_ID+'_config').doc(key).get();
+        const localVal = DB.get(key);
+        if (doc.exists) {
+          localStorage.setItem(CLINIC_PREFIX + key, JSON.stringify(doc.data()));
+        } else if (localVal) {
+          await db.collection(CLINIC_ID+'_config').doc(key).set(localVal);
+        }
+      }
+      FIREBASE_LOADING = false;
+      updateSyncStatus('online', '☁ متصل بـ Firebase — sync فوري');
+    } catch(e) {
+      console.warn('Load error:', e.message);
+      FIREBASE_LOADING = false;
+      updateSyncStatus('local', '⚠ خطأ في المزامنة');
+    }
+  },
+  init(){
+    if(!this.get('settings')) this.set('settings',{clinicName:'عيادة الابتسامة',doctorName:'',address:'',phone:''},true);
+    if(!this.get('patients')) this.set('patients',[],true);
+    if(!this.get('appointments')) this.set('appointments',[],true);
+    if(!this.get('treatments')) this.set('treatments',[],true);
+    if(!this.get('inventory')) this.set('inventory',[
+      {id:uid(),name:'إبر تخدير كاربول',qty:45,min:15,unit:'إبرة',expiry:'2027-06-01'},
+      {id:uid(),name:'مادة حشو كومبوزيت',qty:8,min:10,unit:'سرنجة',expiry:'2026-12-01'},
+      {id:uid(),name:'مواد طبع (ألجينات)',qty:3,min:5,unit:'كيلو',expiry:'2026-08-01'},
+      {id:uid(),name:'قفازات لاتكس',qty:150,min:50,unit:'زوج',expiry:''},
+      {id:uid(),name:'إبر جذور (K-Files)',qty:12,min:8,unit:'مجموعة',expiry:''},
+    ],true);
+    if(!this.get('billing')) this.set('billing',[],true);
+    if(!this.get('expenses')) this.set('expenses',[],true);
+    if(!this.get('prices')) this.set('prices',[
+      {id:uid(),name:'كشف وتشخيص',price:150,duration:'30 دقيقة'},
+      {id:uid(),name:'تنظيف وتلميع',price:300,duration:'45 دقيقة'},
+      {id:uid(),name:'حشو ضوئي أمامي',price:400,duration:'45 دقيقة'},
+      {id:uid(),name:'حشو ضوئي ضرس',price:600,duration:'60 دقيقة'},
+      {id:uid(),name:'حشو عصب (أحادي)',price:800,duration:'60 دقيقة'},
+      {id:uid(),name:'حشو عصب (ثلاثي)',price:1200,duration:'90 دقيقة'},
+      {id:uid(),name:'خلع بسيط',price:200,duration:'30 دقيقة'},
+      {id:uid(),name:'خلع جراحي',price:500,duration:'60 دقيقة'},
+      {id:uid(),name:'تاج بورسلان',price:1500,duration:'جلستان'},
+      {id:uid(),name:'زرع سن',price:6000,duration:'متعدد'},
+      {id:uid(),name:'تبييض أسنان',price:1200,duration:'60 دقيقة'},
+      {id:uid(),name:'تقويم معدني',price:7000,duration:'18-24 شهر'},
+    ],true);
+    if(!this.get('doctors')) this.set('doctors',[
+      {id:uid(),name:'د. محمد أحمد',spec:'أسنان عامة'},
+      {id:uid(),name:'د. ريم محمد',spec:'تقويم'},
+      {id:uid(),name:'د. سامي علي',spec:'زرع أسنان'},
+    ],true);
+    if(!this.get('tooth_charts')) this.set('tooth_charts',{},true);
+  }
+};
+
+function uid(){return Date.now().toString(36)+Math.random().toString(36).slice(2,6);}
+
+// ====== TOAST ======
+function toast(msg){
+  const t=document.getElementById('toast');
+  t.textContent=msg;t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'),2500);
+}
+
+// ====== NAVIGATION ======
+const pageTitles={dashboard:'الرئيسية',patients:'المرضى',appointments:'المواعيد',chart:'خريطة الأسنان',treatments:'العلاجات',inventory:'المخزون',billing:'الفواتير',expenses:'المصروفات',settings:'الإعدادات',profile:'ملف المريض',treasury:'🔒 الخزنة'};
+function sw(p,el){
+  document.querySelectorAll('.page').forEach(x=>x.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(x=>x.classList.remove('active'));
+  document.getElementById('page-'+p).classList.add('active');
+  if(el) el.classList.add('active');
+  document.getElementById('page-title').textContent=pageTitles[p]||p;
+  const renders={patients:renderPatients,appointments:()=>{renderCal();populateSelects();},chart:()=>{populateChartSelect();renderToothChart();},treatments:()=>{renderTreatments();renderPrices();populateSelects();},inventory:renderInventory,billing:()=>{renderBilling();populateSelects();},expenses:renderExpenses,settings:renderSettings,dashboard:renderDashboard};
+  if(renders[p]) renders[p]();
+}
+
+// ====== DATE ======
+function today(){return new Date().toISOString().split('T')[0];}
+function fmtDate(d){if(!d)return'-';const x=new Date(d);return x.toLocaleDateString('ar-EG');}
+function initDate(){
+  const now=new Date();
+  document.getElementById('today-date').textContent=now.toLocaleDateString('ar-EG',{weekday:'long',year:'numeric',month:'long',day:'numeric'});
+  document.getElementById('dash-date').textContent=now.toLocaleDateString('ar-EG',{month:'long',day:'numeric'});
+  document.getElementById('appt-date').value=today();
+  document.getElementById('bill-date').value=today();
+}
+
+// ====== AVATAR ======
+const avClasses=['av-b','av-t','av-p','av-c','av-g'];
+function getAv(name){const i=(name.charCodeAt(0)+name.charCodeAt(1||0))%5;return avClasses[i];}
+function getInit(name){const p=name.split(' ');return (p[0]?p[0][0]:'')+(p[1]?p[1][0]:'');}
+
+// ====== MODAL ======
+function openModal(id){document.getElementById(id).classList.add('show');}
+function closeModal(id){document.getElementById(id).classList.remove('show');}
+function openAddModal(){
+  if(document.getElementById('page-patients').classList.contains('active')||document.getElementById('page-dashboard').classList.contains('active')){
+    clearPatientForm();openModal('modal-add-patient');
+  } else if(document.getElementById('page-appointments').classList.contains('active')){
+    populateSelects();openModal('modal-add-patient');
+  } else {
+    clearPatientForm();openModal('modal-add-patient');
+  }
+}
+function clearPatientForm(){
+  const box=document.getElementById('patient-suggestions');
+  if(box) box.style.display='none';
+  ['p-fname','p-phone','p-email','p-address','p-allergy','p-chronic','p-notes'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('p-age').value='';
+  document.getElementById('p-birthyear').value='';
+}
+
+function showPatientSuggestions(val){
+  const box=document.getElementById('patient-suggestions');
+  if(!box) return;
+  if(!val||val.length<1){box.style.display='none';return;}
+  const pts=DB.get('patients')||[];
+  const matches=pts.filter(p=>p.name&&p.name.includes(val)).slice(0,6);
+  if(!matches.length){box.style.display='none';return;}
+  box.innerHTML=matches.map(p=>`
+    <div onclick="selectExistingPatient('${p.id}')"
+      style="padding:10px 14px;cursor:pointer;border-bottom:1px solid var(--border);font-size:13px;"
+      onmouseover="this.style.background='var(--bg2)'" onmouseout="this.style.background=''">
+      <div style="font-weight:600;">${p.name}</div>
+      <div style="font-size:11px;color:var(--text2);">📞 ${p.phone||''} · ${p.age||'-'} سنة · ${p.status||''}</div>
+    </div>`).join('');
+  box.style.display='block';
+}
+
+function selectExistingPatient(pid){
+  document.getElementById('patient-suggestions').style.display='none';
+  closeModal('modal-add-patient');
+  openProfile(pid);
+  toast('تم فتح ملف المريض الموجود');
+}
+
+function ageToYear(){
+  const age=+document.getElementById('p-age').value;
+  if(age>0) document.getElementById('p-birthyear').value=new Date().getFullYear()-age;
+  else document.getElementById('p-birthyear').value='';
+}
+
+function yearToAge(){
+  const year=+document.getElementById('p-birthyear').value;
+  if(year>1900) document.getElementById('p-age').value=new Date().getFullYear()-year;
+  else document.getElementById('p-age').value='';
+}
+
+// ====== PATIENTS ======
+function savePatient(){
+  const fname=document.getElementById('p-fname').value.trim();
+  const phone=document.getElementById('p-phone').value.trim();
+  const age=parseInt(document.getElementById('p-age').value)||0;
+  const birthyear=parseInt(document.getElementById('p-birthyear').value)||0;
+  if(!fname||!phone){toast('⚠ يرجى ملء الاسم ورقم الهاتف');return;}
+  const pts=DB.get('patients')||[];
+  const newId='D-'+Date.now().toString(36).toUpperCase();
+  pts.push({id:newId,fname,lname:'',name:fname,age,birthyear,phone,email:document.getElementById('p-email').value,address:document.getElementById('p-address').value,allergy:document.getElementById('p-allergy').value,chronic:document.getElementById('p-chronic').value,notes:document.getElementById('p-notes').value,gender:'',lastVisit:today(),status:'جديد',createdAt:today()});
+  DB.set('patients',pts);
+  closeModal('modal-add-patient');
+  toast('✓ تم إضافة المريض بنجاح');
+  renderPatients();renderDashboard();
+}
+
+function deletePatient(id){
+  if(!confirm('حذف هذا المريض نهائياً؟')) return;
+  DB.set('patients',(DB.get('patients')||[]).filter(p=>p.id!==id));
+  renderPatients();renderDashboard();toast('تم حذف المريض');
+}
+
+function renderPatients(){
+  const q=(document.getElementById('search-patients')?.value||'').toLowerCase();
+  const allPts=DB.get('patients')||[];
+  const pts=[...allPts].filter(p=>!q||p.name.toLowerCase().includes(q)||p.id.includes(q)||p.phone.includes(q)).reverse();
+
+
+  const statusMap={جديد:'b-purple',منتظم:'b-green',متابعة:'b-amber',مكتمل:'b-green'};
+  document.getElementById('patients-tbody').innerHTML=pts.length?pts.map(p=>`
+    <tr>
+      <td><div class="pr"><div class="av ${getAv(p.name)}">${getInit(p.name)}</div><span onclick="openProfile('${p.id}')" style="cursor:pointer;color:var(--blue);font-weight:600;text-decoration:underline;text-underline-offset:3px;">${p.name}</span></div></td>
+      <td style="color:var(--text2)">${p.id}</td>
+      <td>${p.age||'-'}</td>
+      <td>${p.phone}</td>
+      <td style="color:var(--text2)">${fmtDate(p.lastVisit)}</td>
+      <td><span class="badge ${statusMap[p.status]||'b-gray'}">${p.status}</span></td>
+      <td style="display:flex;gap:4px;"><button class="btn btn-sm" onclick="openEditPatient('${p.id}')">تعديل</button><button class="btn btn-sm btn-danger" onclick="deletePatient('${p.id}')">حذف</button></td>
+    </tr>`).join(''):'<tr><td colspan="7" style="text-align:center;padding:30px;color:var(--text2)">لا توجد نتائج</td></tr>';
+}
+
+// ====== APPOINTMENTS ======
+let calYear=new Date().getFullYear(), calMonth=new Date().getMonth();
+let dashCalYear=new Date().getFullYear(), dashCalMonth=new Date().getMonth();
+
+function dashCalPrev(){dashCalMonth--;if(dashCalMonth<0){dashCalMonth=11;dashCalYear--;}renderDashCal();}
+function dashCalNext(){dashCalMonth++;if(dashCalMonth>11){dashCalMonth=0;dashCalYear++;}renderDashCal();}
+
+function renderDashCal(){
+  const months=['يناير','فبراير','مارس','أبريل','مايو','يونيو','يوليو','أغسطس','سبتمبر','أكتوبر','نوفمبر','ديسمبر'];
+  const titleEl=document.getElementById('dash-cal-title');
+  if(!titleEl) return;
+  titleEl.textContent=months[dashCalMonth].slice(0,3)+' '+dashCalYear;
+  const days=['S','M','T','W','T','F','S'];
+  document.getElementById('dash-cal-labels').innerHTML=days.map(d=>`<div style="text-align:center;font-size:10px;color:var(--text2);">${d}</div>`).join('');
+  const allApts=DB.get('appointments')||[];
+  // Show all upcoming appointments in the calendar
+  const todayStr=today();
+  const first=new Date(dashCalYear,dashCalMonth,1).getDay();
+  const daysInMonth=new Date(dashCalYear,dashCalMonth+1,0).getDate();
+  let html='';
+  for(let i=0;i<first;i++) html+='<div></div>';
+  for(let d=1;d<=daysInMonth;d++){
+    const ds=dashCalYear+'-'+String(dashCalMonth+1).padStart(2,'0')+'-'+String(d).padStart(2,'0');
+    const isToday=ds===todayStr;
+    const isFuture=ds>=todayStr;
+    const cnt=allApts.filter(a=>a.date===ds).length;
+    html+=`<div onclick="showDashCalDay('${ds}')" style="text-align:center;font-size:11px;padding:4px 1px;border-radius:5px;cursor:pointer;background:${isToday?'var(--blue)':'transparent'};color:${isToday?'white':isFuture?'var(--text)':'var(--text3)'};position:relative;" onmouseover="if(!${isToday})this.style.background='var(--bg2)'" onmouseout="if(!${isToday})this.style.background='transparent'">
+      ${d}${cnt?`<div style="width:4px;height:4px;border-radius:50%;background:${isToday?'white':'var(--green)'};margin:1px auto 0;"></div>`:''}
+    </div>`;
+  }
+  document.getElementById('dash-cal-days').innerHTML=html;
+}
+
+function showDashCalDay(ds){
+  const apts=(DB.get('appointments')||[]).filter(a=>a.date===ds).sort((a,b)=>a.time.localeCompare(b.time));
+  const el=document.getElementById('dash-cal-appts');
+  // فتح فورم إضافة موعد مع ضبط التاريخ
+  const form=document.getElementById('dash-appt-form');
+  if(form){
+    form.style.display='block';
+    document.getElementById('dash-appt-patient-name').value='';
+    document.getElementById('dash-appt-patient').value='';
+    document.getElementById('dash-patient-suggestions').style.display='none';
+    // حفظ التاريخ المختار في dataset
+    form.dataset.selectedDate=ds;
+  }
+  // عرض المواعيد الموجودة في اليوم ده
+  el.innerHTML=`<div style="font-size:11px;font-weight:600;margin-bottom:5px;color:var(--blue);">📅 ${fmtDate(ds)}</div>`+
+    (apts.length?apts.map(a=>`<div style="display:flex;align-items:center;gap:6px;padding:5px 0;border-bottom:1px solid var(--border);font-size:11px;">
+      <span style="color:var(--text2);flex-shrink:0;">${a.time}</span>
+      <span style="cursor:pointer;color:var(--blue);font-weight:600;flex:1;" onclick="openProfile('${a.patientId}')">${a.patientName}</span>
+      ${a.clinic?`<span class="badge b-blue" style="font-size:9px;">${a.clinic}</span>`:''}
+    </div>`).join(''):'<div style="font-size:11px;color:var(--text2);text-align:center;padding:4px;">لا مواعيد</div>');
+}
+function calPrev(){calMonth--;if(calMonth<0){calMonth=11;calYear--;}renderCal();}
+function calNext(){calMonth++;if(calMonth>11){calMonth=0;calYear++;}renderCal();}
+
+function renderCal(){
+  const months=['يناير','فبراير','مارس','أبريل','مايو','يونيو','يوليو','أغسطس','سبتمبر','أكتوبر','نوفمبر','ديسمبر'];
+  document.getElementById('cal-title').textContent=months[calMonth]+' '+calYear;
+  const days=['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+  const allApts=DB.get('appointments')||[];
+  const todayStr=today();
+  const first=new Date(calYear,calMonth,1).getDay();
+  const daysInMonth=new Date(calYear,calMonth+1,0).getDate();
+
+  ['A','B'].forEach(clinic=>{
+    const clinicName=clinic==='A'?'إيتاي':'السوالم';
+    const clinicApts=allApts.filter(a=>a.clinic===clinicName);
+    const monthApts=clinicApts.filter(a=>a.date&&a.date.startsWith(calYear+'-'+String(calMonth+1).padStart(2,'0')));
+    const countEl=document.getElementById('cal-'+clinic+'-count');
+    if(countEl) countEl.textContent=monthApts.length+' موعد';
+
+    document.getElementById('cal-labels-'+clinic).innerHTML=days.map(d=>`<div style="text-align:center;font-size:11px;color:var(--text2);padding:3px;">${d}</div>`).join('');
+    let html='';
+    for(let i=0;i<first;i++) html+='<div></div>';
+    for(let d=1;d<=daysInMonth;d++){
+      const ds=calYear+'-'+String(calMonth+1).padStart(2,'0')+'-'+String(d).padStart(2,'0');
+      const isToday=ds===todayStr;
+      const dayApts=clinicApts.filter(a=>a.date===ds);
+      const hasA=dayApts.length>0;
+      html+=`<div onclick="showDayAppts('${ds}','${clinic}')" style="text-align:center;font-size:12px;padding:6px 2px;border-radius:6px;cursor:pointer;background:${isToday?'var(--blue)':'transparent'};color:${isToday?'white':'var(--text)'};position:relative;" onmouseover="if(!${isToday})this.style.background='var(--bg2)'" onmouseout="if(!${isToday})this.style.background='transparent'">
+        ${d}${hasA?`<div style="width:5px;height:5px;border-radius:50%;background:${isToday?'white':'var(--green)'};margin:1px auto 0;"></div>`:''}
+      </div>`;
+    }
+    document.getElementById('cal-days-'+clinic).innerHTML=html;
+  });
+}
+
+function showDayAppts(ds, clinic){
+  const clinicName=clinic==='A'?'إيتاي':'السوالم';
+  const el=document.getElementById('selected-day-appts-'+clinic);
+  const apts=(DB.get('appointments')||[]).filter(a=>a.date===ds&&a.clinic===clinicName).sort((a,b)=>a.time.localeCompare(b.time));
+  if(!apts.length){
+    el.innerHTML=`<div style="font-size:12px;color:var(--text2);text-align:center;padding:10px;">لا توجد مواعيد في ${fmtDate(ds)}</div>`;
+    return;
+  }
+  el.innerHTML=`<div style="font-size:12px;font-weight:600;margin-bottom:8px;">${fmtDate(ds)}</div>`+
+    apts.map(a=>`<div class="appt">
+      <div class="appt-time">${a.time}</div>
+      <div class="av ${getAv(a.patientName)}">${getInit(a.patientName)}</div>
+      <div class="appt-info">
+        <div class="appt-name" style="cursor:pointer;color:var(--blue);text-decoration:underline;text-underline-offset:2px;" onclick="openProfile('${a.patientId}')">${a.patientName}</div>
+        <div class="appt-type">${a.type||''}</div>
+      </div>
+      <label title="إرسال تقييم WhatsApp" style="display:flex;align-items:center;gap:4px;cursor:pointer;font-size:11px;color:var(--text2);flex-shrink:0;">
+        <input type="checkbox" id="wa-chk-${a.id}" onchange="sendWhatsAppReview(this,'${a.id}')" style="width:auto;cursor:pointer;">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="#25D366"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
+      </label>
+      <button class="btn btn-sm btn-danger" onclick="deleteAppt('${a.id}')">حذف</button>
+    </div>`).join('');
+}
+
+function saveAppointment(){ /* kept for compatibility */ }
+
+function deleteAppt(id){
+  DB.set('appointments',(DB.get('appointments')||[]).filter(a=>a.id!==id));
+  renderCal();renderDashboard();toast('تم حذف الموعد');
+}
+
+// ====== SELECTS POPULATION ======
+function populateSelects(){
+  const pts=DB.get('patients')||[];
+  const docs=DB.get('doctors')||[];
+  ['appt-patient','tx-patient','bill-patient','chart-patient-select'].forEach(id=>{
+    const el=document.getElementById(id);if(!el)return;
+    const cur=el.value;
+    el.innerHTML='<option value="">-- اختر مريض --</option>'+pts.map(p=>`<option value="${p.id}">${p.name}</option>`).join('');
+    if(cur) el.value=cur;
+  });
+  ['appt-doctor'].forEach(id=>{
+    const el=document.getElementById(id);if(!el)return;
+    el.innerHTML=docs.map(d=>`<option value="${d.id}">${d.name} (${d.spec})</option>`).join('');
+    if(docs.length&&!el.value) el.value=docs[0].id;
+  });
+}
+
+// ====== TOOTH CHART ======
+let currentChartPatient=null, selectedToothNum=null;
+const defaultTeeth={
+  upper:[18,17,16,15,14,13,12,11],
+  lower:[41,42,43,44,45,46,47,48]
+};
+
+function populateChartSelect(){populateSelects();}
+
+function loadPatientChart(){
+  currentChartPatient=document.getElementById('chart-patient-select').value;
+  renderToothChart();
+}
+
+function getTeethData(pid){
+  if(!pid) return null;
+  const charts=DB.get('tooth_charts')||{};
+  if(!charts[pid]){
+    const data={upper:{},lower:{}};
+    defaultTeeth.upper.forEach(n=>data.upper[n]='healthy');
+    defaultTeeth.lower.forEach(n=>data.lower[n]='healthy');
+    charts[pid]=data;DB.set('tooth_charts',charts);
+  }
+  return (DB.get('tooth_charts')||{})[pid];
+}
+
+function saveTeethData(pid,data){
+  const charts=DB.get('tooth_charts')||{};
+  charts[pid]=data;DB.set('tooth_charts',charts);
+}
+
+function renderToothChart(){
+  const pid=currentChartPatient;
+  const data=getTeethData(pid);
+  ['upper','lower'].forEach(jaw=>{
+    const el=document.getElementById(jaw+'-jaw');
+    const nums=defaultTeeth[jaw];
+    el.innerHTML=nums.map(n=>{
+      const s=data?data[jaw][n]:'healthy';
+      return `<div class="tooth ${s}${selectedToothNum===n?' selected':''}" id="tooth-${n}" onclick="selectTooth(${n},'${jaw}')">
+        <div class="ts"></div><div class="tn">${n}</div>
+      </div>`;
+    }).join('');
+  });
+  updateChartSummary(data);
+}
+
+function selectTooth(n,jaw){
+  if(!currentChartPatient){toast('اختر مريض أولاً');return;}
+  selectedToothNum=n;
+  const data=getTeethData(currentChartPatient);
+  const s=data[jaw][n];
+  renderToothChart();
+  const statusMap={healthy:'سليم',cavity:'تسوس',filled:'محشو',crown:'تاج',missing:'مخلوع'};
+  const badgeMap={healthy:'b-green',cavity:'b-red',filled:'b-amber',crown:'b-purple',missing:'b-gray'};
+  document.getElementById('tooth-detail').innerHTML=`
+    <div style="display:flex;align-items:center;gap:8px;margin-bottom:14px;">
+      <div style="font-size:16px;font-weight:700;">سن رقم ${n}</div>
+      <span class="badge ${badgeMap[s]}">${statusMap[s]}</span>
+    </div>
+    <div class="form-g"><label>تغيير الحالة</label>
+      <select onchange="updateToothStatus(${n},'${jaw}',this.value)">
+        <option value="healthy" ${s==='healthy'?'selected':''}>سليم</option>
+        <option value="cavity" ${s==='cavity'?'selected':''}>تسوس</option>
+        <option value="filled" ${s==='filled'?'selected':''}>محشو</option>
+        <option value="crown" ${s==='crown'?'selected':''}>تاج</option>
+        <option value="missing" ${s==='missing'?'selected':''}>مخلوع</option>
+      </select>
+    </div>
+    <button class="btn btn-primary btn-sm" style="width:100%;margin-top:6px;" onclick="toast('تم حفظ الملاحظة')">+ إضافة ملاحظة</button>`;
+}
+
+function updateToothStatus(n,jaw,s){
+  if(!currentChartPatient) return;
+  const data=getTeethData(currentChartPatient);
+  data[jaw][n]=s;
+  saveTeethData(currentChartPatient,data);
+  renderToothChart();selectTooth(n,jaw);toast('✓ تم تحديث حالة السن');
+}
+
+function updateChartSummary(data){
+  if(!data){document.getElementById('chart-summary').innerHTML='<div style="text-align:center;padding:24px;color:var(--text2);font-size:13px;">اختر مريض</div>';return;}
+  const cnt={healthy:0,cavity:0,filled:0,crown:0,missing:0};
+  [...Object.values(data.upper),...Object.values(data.lower)].forEach(s=>cnt[s]=(cnt[s]||0)+1);
+  const items=[['healthy','b-green','سليمة'],['cavity','b-red','تسوس'],['filled','b-amber','محشوة'],['crown','b-purple','تاج'],['missing','b-gray','مخلوعة']];
+  document.getElementById('chart-summary').innerHTML=items.map(([k,c,l])=>`
+    <div style="display:flex;justify-content:space-between;align-items:center;padding:7px 0;border-bottom:1px solid var(--border);">
+      <span class="badge ${c}">${l}</span><span style="font-weight:700;">${cnt[k]||0} أسنان</span>
+    </div>`).join('');
+}
+
+// ====== TREATMENTS ======
+function openTreatmentModal(){populateSelects();openModal('modal-treatment');}
+function saveTreatment(){
+  const pid=document.getElementById('tx-patient').value;
+  const proc=document.getElementById('tx-procedure').value.trim();
+  if(!pid||!proc){toast('⚠ يرجى اختيار المريض والإجراء');return;}
+  const pt=(DB.get('patients')||[]).find(p=>p.id===pid);
+  const txs=DB.get('treatments')||[];
+  txs.push({id:uid(),patientId:pid,patientName:pt?pt.name:pid,procedure:proc,tooth:document.getElementById('tx-tooth').value,sessionsTotal:+document.getElementById('tx-sessions-total').value,sessionsDone:+document.getElementById('tx-sessions-done').value,cost:+document.getElementById('tx-cost').value,paid:+document.getElementById('tx-paid').value,status:document.getElementById('tx-status').value,notes:document.getElementById('tx-notes').value,date:today()});
+  DB.set('treatments',txs);closeModal('modal-treatment');toast('✓ تم حفظ خطة العلاج');renderTreatments();
+}
+function deleteTreatment(id){
+  if(!confirm('حذف هذا الإجراء؟'))return;
+  DB.set('treatments',(DB.get('treatments')||[]).filter(t=>t.id!==id));
+  if(currentProfilePid) renderProfileData(currentProfilePid);
+  renderTreatments();toast('تم الحذف');
+}
+function renderTreatments(){
+  const txs=DB.get('treatments')||[];
+  const sMap={جاري:'b-blue',انتظار:'b-amber',مكتمل:'b-green',ملغي:'b-red'};
+  document.getElementById('treatments-tbody').innerHTML=txs.length?txs.map(t=>`
+    <tr>
+      <td><div class="pr"><div class="av ${getAv(t.patientName)}">${getInit(t.patientName)}</div>${t.patientName}</div></td>
+      <td>${t.procedure}</td><td>${t.tooth||'-'}</td>
+      <td>${t.sessionsDone}/${t.sessionsTotal}</td>
+      <td>${t.cost.toLocaleString()} ج</td>
+      <td>${t.paid.toLocaleString()} ج</td>
+      <td><span class="badge ${sMap[t.status]||'b-gray'}">${t.status}</span></td>
+      <td><button class="btn btn-sm btn-danger" onclick="deleteTreatment('${t.id}')">حذف</button></td>
+    </tr>`).join(''):'<tr><td colspan="8" style="text-align:center;padding:30px;color:var(--text2)">لا توجد خطط علاج</td></tr>';
+}
+
+// ====== PRICES ======
+function openPriceModal(){openModal('modal-price');}
+function savePrice(){
+  const name=document.getElementById('price-name').value.trim();
+  if(!name){toast('⚠ أدخل اسم الخدمة');return;}
+  const prices=DB.get('prices')||[];
+  prices.push({id:uid(),name,price:+document.getElementById('price-value').value,duration:document.getElementById('price-duration').value});
+  DB.set('prices',prices);closeModal('modal-price');toast('✓ تم إضافة الخدمة');renderPrices();
+  document.getElementById('price-name').value='';document.getElementById('price-value').value=0;document.getElementById('price-duration').value='';
+}
+function deletePrice(id){
+  DB.set('prices',(DB.get('prices')||[]).filter(p=>p.id!==id));renderPrices();toast('تم الحذف');
+}
+function renderPrices(){
+  const prices=DB.get('prices')||[];
+  document.getElementById('prices-tbody').innerHTML=prices.map(p=>`
+    <tr><td>${p.name}</td><td>${p.price.toLocaleString()}</td><td>${p.duration}</td>
+    <td><button class="btn btn-sm btn-danger" onclick="deletePrice('${p.id}')">حذف</button></td></tr>`).join('');
+}
+
+// ====== INVENTORY ======
+function openInvModal(){openModal('modal-inventory');document.getElementById('inv-name').value='';document.getElementById('inv-qty').value=0;document.getElementById('inv-min').value=10;document.getElementById('inv-unit').value='';document.getElementById('inv-expiry').value='';}
+function saveInventory(){
+  const name=document.getElementById('inv-name').value.trim();
+  if(!name){toast('⚠ أدخل اسم الصنف');return;}
+  const inv=DB.get('inventory')||[];
+  inv.push({id:uid(),name,qty:+document.getElementById('inv-qty').value,min:+document.getElementById('inv-min').value,unit:document.getElementById('inv-unit').value,expiry:document.getElementById('inv-expiry').value});
+  DB.set('inventory',inv);closeModal('modal-inventory');toast('✓ تم إضافة الصنف');renderInventory();
+}
+function deleteInv(id){
+  DB.set('inventory',(DB.get('inventory')||[]).filter(i=>i.id!==id));renderInventory();toast('تم الحذف');
+}
+function renderInventory(){
+  const inv=DB.get('inventory')||[];
+  const low=inv.filter(i=>i.qty<=i.min).length;
+  const expired=inv.filter(i=>i.expiry&&new Date(i.expiry)<new Date()).length;
+  document.getElementById('inv-total').textContent=inv.length;
+  document.getElementById('inv-low').textContent=low;
+  document.getElementById('inv-expired').textContent=expired;
+  document.getElementById('inv-order').textContent=low+expired;
+  const todayStr=today();
+  document.getElementById('inv-list').innerHTML=inv.length?inv.map(item=>{
+    const pct=item.min>0?Math.min(100,Math.round((item.qty/Math.max(item.qty,item.min*2))*100)):100;
+    const isLow=item.qty<=item.min;
+    const isExp=item.expiry&&new Date(item.expiry)<new Date();
+    const color=isLow||isExp?'#D85A30':'#1D9E75';
+    return `<div class="inv-row">
+      <div>
+        <div style="font-size:13px;font-weight:600;">${item.name} ${isExp?'<span class="badge b-red">منتهي الصلاحية</span>':''}</div>
+        <div style="font-size:11px;color:var(--text2);">${item.qty} ${item.unit||''} متبقية${item.expiry?' · انتهاء: '+fmtDate(item.expiry):''}</div>
+        <div class="pbar"><div class="pfill" style="width:${pct}%;background:${color};"></div></div>
+      </div>
+      <div style="display:flex;gap:8px;align-items:center;">
+        <span class="badge ${isLow?'b-red':'b-green'}">${isLow?'منخفض':'كافي'}</span>
+        <button class="btn btn-sm btn-danger" onclick="deleteInv('${item.id}')">حذف</button>
+      </div>
+    </div>`;
+  }).join(''):'<div style="text-align:center;padding:30px;color:var(--text2)">لا يوجد مخزون</div>';
+}
+
+// ====== EDIT PATIENT ======
+function openEditPatient(id){
+  const p=(DB.get('patients')||[]).find(x=>x.id===id);
+  if(!p) return;
+  document.getElementById('edit-p-id').value=p.id;
+  document.getElementById('edit-p-fname').value=p.fname||p.name||'';
+  document.getElementById('edit-p-age').value=p.age||'';
+  document.getElementById('edit-p-phone').value=p.phone||'';
+  document.getElementById('edit-p-email').value=p.email||'';
+  document.getElementById('edit-p-address').value=p.address||'';
+  document.getElementById('edit-p-allergy').value=p.allergy||'';
+  document.getElementById('edit-p-chronic').value=p.chronic||'';
+  document.getElementById('edit-p-notes').value=p.notes||'';
+  document.getElementById('edit-p-status').value=p.status||'جديد';
+  openModal('modal-edit-patient');
+}
+function updatePatient(){
+  const id=document.getElementById('edit-p-id').value;
+  const fname=document.getElementById('edit-p-fname').value.trim();
+  const phone=document.getElementById('edit-p-phone').value.trim();
+  if(!fname||!phone){toast('⚠ يرجى ملء الاسم ورقم الهاتف');return;}
+  const pts=DB.get('patients')||[];
+  const idx=pts.findIndex(p=>p.id===id);
+  if(idx===-1) return;
+  pts[idx]={...pts[idx],fname,lname:'',name:fname,age:+document.getElementById('edit-p-age').value||pts[idx].age,phone,email:document.getElementById('edit-p-email').value,address:document.getElementById('edit-p-address').value,allergy:document.getElementById('edit-p-allergy').value,chronic:document.getElementById('edit-p-chronic').value,notes:document.getElementById('edit-p-notes').value,gender:'',status:document.getElementById('edit-p-status').value};
+  DB.set('patients',pts);
+  closeModal('modal-edit-patient');toast('✓ تم تحديث بيانات المريض');renderPatients();renderDashboard();
+}
+
+// ====== PATIENT PROFILE ======
+let currentProfilePid = null;
+
+function openProfile(pid){
+  currentProfilePid = pid;
+  const p=(DB.get('patients')||[]).find(x=>x.id===pid);
+  if(!p) return;
+  document.querySelectorAll('.page').forEach(x=>x.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(x=>x.classList.remove('active'));
+  document.getElementById('page-profile').classList.add('active');
+  document.getElementById('page-title').textContent='ملف المريض';
+  document.getElementById('profile-title').textContent=p.name;
+  renderProfileData(pid);
+}
+
+function renderProfileData(pid){
+  const p=(DB.get('patients')||[]).find(x=>x.id===pid);
+  if(!p) return;
+
+  // Info bar
+  const statusMap={جديد:'b-purple',منتظم:'b-green',متابعة:'b-amber',مكتمل:'b-green'};
+  const allPatApts=(DB.get('appointments')||[]).filter(a=>a.patientId===pid).sort((a,b)=>b.date.localeCompare(a.date));
+  const lastClinic=allPatApts.find(a=>a.clinic)?.clinic||'';
+  document.getElementById('profile-info-card').innerHTML=`
+    <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;">
+      <div class="pr">
+        <div class="av ${getAv(p.name)}" style="width:44px;height:44px;font-size:15px;">${getInit(p.name)}</div>
+        <div>
+          <div style="font-size:16px;font-weight:700;">${p.name} <span class="badge ${statusMap[p.status]||'b-gray'}" style="font-size:11px;">${p.status}</span>${lastClinic?` <span class="badge b-blue" style="font-size:11px;">🏥 ${lastClinic}</span>`:''}</div>
+          <div style="font-size:12px;color:var(--text2);margin-top:2px;">${p.id} · ${p.age||'-'} سنة · 📞 ${p.phone}${p.email?' · 📞 '+p.email:''}${p.allergy?' · <span style="color:#993C1D;font-weight:600;">⚠ حساسية: '+p.allergy+'</span>':''}</div>
+        </div>
+      </div>
+      <button class="btn btn-sm" onclick="openEditPatient('${p.id}')">✏ تعديل البيانات</button>
+    </div>`;
+
+  // Populate treatment select in payment form
+  const txs=(DB.get('treatments')||[]).filter(t=>t.patientId===pid);
+  const billTxSel=document.getElementById('inline-bill-tx');
+  if(billTxSel){
+    billTxSel.innerHTML='<option value="">-- كل الإجراءات --</option>'+
+      txs.map(t=>`<option value="${t.id}">${t.procedure}${t.tooth?' (سن '+t.tooth+')':''} — ${(t.cost||0).toLocaleString()} ج</option>`).join('');
+  }
+  if(document.getElementById('inline-bill-date')) document.getElementById('inline-bill-date').value=today();
+
+  // Payment summary box (auto from treatments)
+  const allBills=DB.get('billing')||[];
+  const totalTxCost=txs.reduce((s,t)=>s+(t.cost||0),0);
+  const totalBillsPaid=allBills.filter(b=>b.patientId===pid).reduce((s,b)=>s+(b.amount||0),0);
+  const summaryEl=document.getElementById('payment-summary');
+  if(summaryEl){
+    summaryEl.innerHTML=`
+      <div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:4px;">
+        <span style="color:var(--text2);">مجموع الإجراءات (${txs.length})</span>
+        <strong>${totalTxCost.toLocaleString()} ج</strong>
+      </div>
+      <div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:4px;">
+        <span style="color:var(--text2);">إجمالي المدفوع</span>
+        <strong style="color:var(--green);">${totalBillsPaid.toLocaleString()} ج</strong>
+      </div>
+      <div style="display:flex;justify-content:space-between;font-size:13px;font-weight:700;border-top:1px dashed var(--border);padding-top:6px;margin-top:4px;">
+        <span>المتبقي</span>
+        <span style="color:${Math.max(0,totalTxCost-totalBillsPaid)>0?'#993C1D':'var(--green)'};">${Math.max(0,totalTxCost-totalBillsPaid).toLocaleString()} ج</span>
+      </div>`;
+  }
+
+  // Treatments
+  const sMap={جديد:'b-purple',منتظم:'b-blue',مكتمل:'b-green',جاري:'b-blue',انتظار:'b-amber',ملغي:'b-red'};
+  document.getElementById('profile-treatments').innerHTML=txs.length?[...txs].reverse().map(t=>{
+    return `<div style="padding:10px;border:1px solid var(--border);border-radius:var(--radius);margin-bottom:8px;">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:5px;">
+        <div style="flex:1;">
+          <span style="font-weight:600;font-size:13px;">${t.procedure}${t.tooth?' <span style="font-size:11px;color:var(--text2);">(سن '+t.tooth+')</span>':''}</span>
+          ${t.complaint?`<div style="font-size:11px;color:#993C1D;margin-top:2px;">🗣 ${t.complaint}</div>`:''}
+          ${t.txNotes?`<div style="font-size:11px;color:var(--text2);margin-top:2px;">📝 ${t.txNotes}</div>`:''}
+        </div>
+        <span class="badge ${sMap[t.status]||'b-gray'}">${t.status}</span>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:4px;font-size:11px;color:var(--text2);">
+        <div>جلسات: <strong>${t.sessionsTotal||1}</strong></div>
+        <div>التكلفة: <strong>${(t.cost||0).toLocaleString()} ج</strong></div>
+        <div>التاريخ: <strong>${t.date?fmtDate(t.date):'-'}</strong></div>
+      </div>
+      <div style="margin-top:7px;display:flex;gap:4px;">
+        <button class="btn btn-sm" style="font-size:11px;flex:1;" onclick="openEditTreatment('${t.id}')">✏ تعديل</button>
+        <button class="btn btn-sm btn-danger" style="font-size:11px;" onclick="deleteTreatment('${t.id}')">حذف</button>
+      </div>
+    </div>`;
+  }).join(''):'<div style="color:var(--text2);font-size:13px;text-align:center;padding:20px;">لا توجد إجراءات بعد</div>';
+
+  // Bills
+  const bills=(DB.get('billing')||[]).filter(b=>b.patientId===pid).sort((a,b)=>b.date.localeCompare(a.date)||0);
+  const totalTreatmentsCost=txs.reduce((s,t)=>s+(t.cost||0),0);
+  const totalPaid=bills.reduce((s,b)=>s+(b.amount||0),0);
+  const remaining=Math.max(0,totalTreatmentsCost-totalPaid);
+  document.getElementById('profile-bill-total').textContent=totalTreatmentsCost.toLocaleString()+' ج';
+  document.getElementById('profile-bill-paid').textContent=totalPaid.toLocaleString()+' ج';
+  document.getElementById('profile-bill-remaining').textContent=remaining.toLocaleString()+' ج';
+  const bsMap={مدفوعة:'b-green',جزئي:'b-amber','غير مدفوعة':'b-red'};
+  document.getElementById('profile-bills').innerHTML=bills.length?bills.map(b=>`
+    <div style="padding:9px;background:var(--bg2);border-radius:var(--radius);margin-bottom:6px;">
+      <div style="display:flex;justify-content:space-between;align-items:center;">
+        <span style="font-size:13px;font-weight:600;">${b.service}</span>
+        <div style="display:flex;gap:6px;align-items:center;">
+          <span class="badge ${bsMap[b.status]||'b-gray'}">${b.status||'مدفوعة'}</span>
+          <button class="btn btn-sm" style="font-size:10px;padding:2px 7px;" onclick="openEditBill('${b.id}')">✏</button>
+          <button class="btn btn-sm btn-danger" style="font-size:10px;padding:2px 7px;" onclick="deleteBillFromProfile('${b.id}')">×</button>
+        </div>
+      </div>
+      <div style="font-size:11px;color:var(--text2);margin-top:3px;">
+        ${fmtDate(b.date)} · <span style="color:var(--green);font-weight:600;">دفع: ${(b.amount||0).toLocaleString()} ج</span>${b.totalAmount&&b.totalAmount!==b.amount?' · إجمالي الإجراء: '+b.totalAmount.toLocaleString()+' ج':''} · ${b.method||'نقدي'}
+      </div>
+    </div>`).join(''):'<div style="color:var(--text2);font-size:13px;text-align:center;padding:20px;">لا توجد دفعات بعد</div>';
+
+  // Appointments - split past and upcoming
+  const todayStr=today();
+  const allApts=(DB.get('appointments')||[]).filter(a=>a.patientId===pid);
+  const pastApts=allApts.filter(a=>a.date<=todayStr).sort((a,b)=>b.date.localeCompare(a.date)||(a.date===b.date?b.time.localeCompare(a.time):0));
+  const upcomingApts=allApts.filter(a=>a.date>todayStr).sort((a,b)=>a.date.localeCompare(b.date)||a.time.localeCompare(b.time));
+
+  const renderAppt=(a,isPast)=>`
+    <div style="padding:8px;border-radius:var(--radius);margin-bottom:6px;background:${isPast?'var(--bg2)':'#E6F1FB'};border:1px solid ${isPast?'var(--border)':'#B5D4F4'};">
+      <div style="display:flex;gap:8px;align-items:flex-start;">
+        <div style="flex-shrink:0;text-align:center;min-width:50px;">
+          <div style="font-size:10px;color:var(--text2);">${fmtDate(a.date)}</div>
+          <div style="font-size:11px;font-weight:700;">${a.time}</div>
+        </div>
+        <div style="flex:1;">
+          <div style="font-size:13px;font-weight:600;">${a.proc||a.type||'زيارة'}</div>
+          ${a.notes?`<div style="font-size:11px;color:var(--text2);">${a.notes}</div>`:''}
+          ${a.clinic?`<span class="badge b-blue" style="font-size:10px;">${a.clinic}</span>`:''}
+          ${a.notes?`<div style="font-size:11px;color:var(--text2);">${a.notes}</div>`:''}
+          ${a.doctor?`<div style="font-size:11px;color:var(--text2);">${a.doctor}</div>`:''}
+        </div>
+        <div style="display:flex;gap:3px;flex-shrink:0;">
+          <button class="btn btn-sm" style="font-size:10px;padding:2px 7px;" onclick="openEditVisit('${a.id}')">✏</button>
+          <button class="btn btn-sm btn-danger" style="font-size:10px;padding:2px 7px;" onclick="deleteApptFromProfile('${a.id}')">×</button>
+        </div>
+      </div>
+    </div>`;
+
+  let apptHtml='';
+  if(upcomingApts.length){
+    apptHtml+=`<div style="font-size:11px;font-weight:700;color:var(--blue);margin-bottom:6px;display:flex;align-items:center;gap:5px;">
+      <span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--blue);"></span>القادمة (${upcomingApts.length})</div>`;
+    apptHtml+=upcomingApts.map(a=>renderAppt(a,false)).join('');
+  }
+  if(pastApts.length){
+    apptHtml+=`<div style="font-size:11px;font-weight:700;color:var(--text2);margin:${upcomingApts.length?'10px':0} 0 6px;display:flex;align-items:center;gap:5px;">
+      <span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--text2);"></span>السابقة (${pastApts.length})</div>`;
+    apptHtml+=pastApts.map(a=>renderAppt(a,true)).join('');
+  }
+  document.getElementById('profile-appointments').innerHTML=apptHtml||
+    '<div style="color:var(--text2);font-size:13px;text-align:center;padding:20px;">لا توجد زيارات بعد</div>';
+
+  // Set default date for visit form
+  const visitDateEl=document.getElementById('visit-date');
+  if(visitDateEl&&!visitDateEl.value) visitDateEl.value=today();
+
+  // Photos
+  renderPatientPhotos(pid);
+}
+
+function openEditVisit(id){
+  const apts=DB.get('appointments')||[];
+  const a=apts.find(x=>x.id===id);
+  if(!a) return;
+  // Fill visit form
+  document.getElementById('visit-date').value=a.date||'';
+  document.getElementById('visit-time').value=a.time||'12:00';
+  document.getElementById('visit-notes').value=a.notes||'';
+  if(document.getElementById('visit-proc')) document.getElementById('visit-proc').value=a.proc||a.type||'';
+  document.getElementById('visit-clinic').value=a.clinic||'إيتاي';
+  // Store edit id
+  document.getElementById('form-add-visit').dataset.editId=id;
+  document.getElementById('form-add-visit').style.display='block';
+  document.getElementById('form-add-visit').scrollIntoView({behavior:'smooth',block:'nearest'});
+}
+
+function saveInlineVisit(){
+  const date=document.getElementById('visit-date').value;
+  if(!date){toast('⚠ حدد التاريخ');return;}
+  const p=(DB.get('patients')||[]).find(x=>x.id===currentProfilePid);
+  const docs=DB.get('doctors')||[];
+  const apts=DB.get('appointments')||[];
+  const clinic=CLINIC_ID==='itay'?'إيتاي':'السوالم';
+  const editId=document.getElementById('form-add-visit').dataset.editId;
+  if(editId){
+    const i=apts.findIndex(a=>a.id===editId);
+    if(i>-1){apts[i]={...apts[i],date,time:document.getElementById('visit-time').value||'12:00',type:document.getElementById('visit-notes').value||'زيارة',clinic};}
+    delete document.getElementById('form-add-visit').dataset.editId;
+    toast('✓ تم تعديل الموعد');
+  } else {
+    apts.push({id:uid(),patientId:currentProfilePid,patientName:p?p.name:'',doctor:docs[0]?docs[0].name:'',date,time:document.getElementById('visit-time').value||'12:00',type:document.getElementById('visit-notes').value||'زيارة',clinic,notes:'',status:'مؤكد'});
+    if(date>=today()){
+      const d=new Date(date);
+      dashCalYear=d.getFullYear();
+      dashCalMonth=d.getMonth();
+    }
+    toast('✓ تم حجز الموعد');
+  }
+  DB.set('appointments',apts);
+  document.getElementById('visit-date').value='';
+  document.getElementById('visit-notes').value='';
+  if(document.getElementById('visit-proc')) document.getElementById('visit-proc').value='';
+  toggleInlineForm('form-add-visit');
+  renderProfileData(currentProfilePid);
+  renderDashboard();
+}
+
+function toggleInlineForm(id){
+  const el=document.getElementById(id);
+  if(!el) return;
+  const opening=el.style.display==='none';
+  el.style.display=opening?'block':'none';
+  if(id==='form-add-payment'&&opening){
+    document.getElementById('inline-bill-paid').value=0;
+    document.getElementById('inline-bill-svc').value='';
+    document.getElementById('inline-bill-date').value=today();
+    document.getElementById('inline-bill-tx').value='';
+    inlineCalcRemaining();
+  }
+  if(id==='form-add-treatment'&&opening){populateProcSelect();const dtEl=document.getElementById('inline-tx-date');if(dtEl&&!dtEl.value)dtEl.value=today();}
+}
+
+function closeTreatmentForm(){
+  document.getElementById('form-add-treatment').style.display='none';
+  document.getElementById('inline-tx-edit-id').value='';
+  document.getElementById('inline-tx-complaint').value='';
+  document.getElementById('inline-tx-proc').value='';
+  document.getElementById('inline-tx-tooth').value='';
+  document.getElementById('inline-tx-cost').value=0;
+  document.getElementById('inline-tx-sessions').value=1;
+  document.getElementById('inline-tx-status').value='جديد';
+  if(document.getElementById('inline-tx-notes')) document.getElementById('inline-tx-notes').value='';
+  if(document.getElementById('inline-tx-date')) document.getElementById('inline-tx-date').value=today();
+  if(document.getElementById('inline-tx-proc-select')) document.getElementById('inline-tx-proc-select').value='';
+  if(document.getElementById('inline-tx-price-hint')) document.getElementById('inline-tx-price-hint').style.display='none';
+}
+
+function openEditTreatment(id){
+  const t=(DB.get('treatments')||[]).find(x=>x.id===id);
+  if(!t) return;
+  populateProcSelect();
+  document.getElementById('inline-tx-edit-id').value=t.id;
+  document.getElementById('inline-tx-complaint').value=t.complaint||'';
+  document.getElementById('inline-tx-proc').value=t.procedure||'';
+  document.getElementById('inline-tx-tooth').value=t.tooth||'';
+  document.getElementById('inline-tx-cost').value=t.cost||0;
+  document.getElementById('inline-tx-sessions').value=t.sessionsTotal||1;
+  document.getElementById('inline-tx-status').value=t.status||'جديد';
+  document.getElementById('inline-tx-notes').value=t.txNotes||'';
+  document.getElementById('inline-tx-date').value=t.date||today();
+  document.getElementById('inline-tx-price-hint').style.display='none';
+  document.getElementById('form-add-treatment').style.display='block';
+  document.getElementById('form-add-treatment').scrollIntoView({behavior:'smooth',block:'nearest'});
+}
+
+function saveInlineTreatment(){
+  const proc=document.getElementById('inline-tx-proc').value.trim();
+  // no required fields
+  const editId=document.getElementById('inline-tx-edit-id').value;
+  const p=(DB.get('patients')||[]).find(x=>x.id===currentProfilePid);
+  const txs=DB.get('treatments')||[];
+
+  if(editId){
+    const i=txs.findIndex(t=>t.id===editId);
+    if(i>-1){
+      txs[i]={...txs[i],complaint:document.getElementById('inline-tx-complaint').value.trim(),procedure:proc,tooth:'',sessionsTotal:1,cost:+document.getElementById('inline-tx-cost').value||0,status:'جديد',txNotes:document.getElementById('inline-tx-notes').value.trim(),date:document.getElementById('inline-tx-date').value||today()};
+    }
+    DB.set('treatments',txs);
+    toast('✓ تم تعديل الإجراء');
+  } else {
+    txs.push({id:uid(),patientId:currentProfilePid,patientName:p?p.name:'',complaint:document.getElementById('inline-tx-complaint').value.trim(),procedure:proc,tooth:'',sessionsTotal:1,sessionsDone:0,cost:+document.getElementById('inline-tx-cost').value||0,paid:0,status:'جديد',txNotes:document.getElementById('inline-tx-notes').value.trim(),date:document.getElementById('inline-tx-date').value||today()});
+    DB.set('treatments',txs);
+    // أضف زيارة اليوم في سجل الزيارات تلقائياً
+    const apts=DB.get('appointments')||[];
+    const docs=DB.get('doctors')||[];
+    const clinicName=CLINIC_ID==='itay'?'إيتاي':'السوالم';
+    // لا تضيف زيارة مكررة لنفس المريض في نفس اليوم
+    const alreadyToday=apts.some(a=>a.patientId===currentProfilePid&&a.date===today());
+    if(!alreadyToday){
+      apts.push({id:uid(),patientId:currentProfilePid,patientName:p?p.name:'',doctor:docs[0]?docs[0].name:'',date:today(),time:new Date().toTimeString().slice(0,5),type:proc,clinic:clinicName,notes:'',status:'مؤكد'});
+      DB.set('appointments',apts);
+    }
+    toast('✓ تم إضافة الإجراء');
+  }
+  closeTreatmentForm();
+  renderProfileData(currentProfilePid);
+  renderDashboard();
+}
+
+function inlineCalcRemaining(){
+  const txId=document.getElementById('inline-bill-tx').value;
+  const paid=+document.getElementById('inline-bill-paid').value||0;
+  const allBills=DB.get('billing')||[];
+  const txs=(DB.get('treatments')||[]).filter(t=>t.patientId===currentProfilePid);
+
+  let total, prevPaid;
+  if(txId){
+    // Specific treatment
+    const tx=txs.find(t=>t.id===txId);
+    total=tx?tx.cost||0:0;
+    prevPaid=allBills.filter(b=>b.treatmentId===txId).reduce((s,b)=>s+(b.amount||0),0);
+  } else {
+    // All treatments total
+    total=txs.reduce((s,t)=>s+(t.cost||0),0);
+    prevPaid=allBills.filter(b=>b.patientId===currentProfilePid).reduce((s,b)=>s+(b.amount||0),0);
+  }
+  document.getElementById('inline-total-display').textContent=total.toLocaleString()+' ج';
+  document.getElementById('inline-prev-paid').textContent=prevPaid.toLocaleString()+' ج';
+  document.getElementById('inline-remaining').textContent=Math.max(0,total-prevPaid-paid).toLocaleString()+' ج';
+}
+
+function saveInlinePayment(){
+  const editId=document.getElementById('form-add-payment').dataset.editId;
+  if(editId){
+    const bills=DB.get('billing')||[];
+    const i=bills.findIndex(b=>b.id===editId);
+    if(i>-1){
+      const amt=+document.getElementById('inline-bill-paid').value||0;
+      const txs=(DB.get('treatments')||[]).filter(t=>t.patientId===currentProfilePid);
+      const totalCost=txs.reduce((s,t)=>s+(t.cost||0),0);
+      const otherPaid=bills.filter(b=>b.patientId===currentProfilePid&&b.id!==editId).reduce((s,b)=>s+(b.amount||0),0);
+      const remaining=Math.max(0,totalCost-otherPaid-amt);
+      const status=remaining===0?'مدفوعة':amt>0?'جزئي':'غير مدفوعة';
+      bills[i]={...bills[i],service:document.getElementById('inline-bill-svc').value,amount:amt,method:document.getElementById('inline-bill-method').value,date:document.getElementById('inline-bill-date').value,remaining,status};
+      DB.set('billing',bills);
+      delete document.getElementById('form-add-payment').dataset.editId;
+      document.getElementById('form-add-payment').style.display='none';
+      document.getElementById('inline-bill-paid').value=0;
+      document.getElementById('inline-bill-svc').value='';
+      toast('✓ تم تعديل الدفعة');
+      renderProfileData(currentProfilePid);renderDashboard();
+      return;
+    }
+  }
+  const svc=document.getElementById('inline-bill-svc').value.trim();
+  const amt=+document.getElementById('inline-bill-paid').value;
+  if(!amt){toast('⚠ اكتب المبلغ المدفوع');return;}
+  const p=(DB.get('patients')||[]).find(x=>x.id===currentProfilePid);
+  const bills=DB.get('billing')||[];
+  const txId=document.getElementById('inline-bill-tx').value;
+  const txs=(DB.get('treatments')||[]).filter(t=>t.patientId===currentProfilePid);
+  // Total = specific treatment cost OR sum of all treatments
+  const totalAmt=txId?(txs.find(t=>t.id===txId)?.cost||0):txs.reduce((s,t)=>s+(t.cost||0),0);
+  const prevPaid=txId?bills.filter(b=>b.treatmentId===txId).reduce((s,b)=>s+(b.amount||0),0):bills.filter(b=>b.patientId===currentProfilePid).reduce((s,b)=>s+(b.amount||0),0);
+  const newRemaining=Math.max(0,totalAmt-prevPaid-amt);
+  const status=newRemaining===0?'مدفوعة':amt>0?'جزئي':'غير مدفوعة';
+  bills.push({id:uid(),num:bills.length+1001,patientId:currentProfilePid,patientName:p?p.name:'',service:svc,amount:amt,totalAmount:totalAmt,remaining:newRemaining,treatmentId:txId||null,date:document.getElementById('inline-bill-date').value,method:document.getElementById('inline-bill-method').value,status});
+  if(txId){
+    const allTxs=DB.get('treatments')||[];
+    const ti=allTxs.findIndex(t=>t.id===txId);
+    if(ti>-1){allTxs[ti].paid=(allTxs[ti].paid||0)+amt;if(newRemaining===0)allTxs[ti].status='مكتمل';DB.set('treatments',allTxs);}
+  }
+  const pts=DB.get('patients')||[];
+  const pi=pts.findIndex(pt=>pt.id===currentProfilePid);
+  if(pi>-1){pts[pi].lastVisit=today();DB.set('patients',pts);}
+  DB.set('billing',bills);
+  document.getElementById('inline-bill-svc').value='';
+  document.getElementById('inline-bill-paid').value=0;
+  toggleInlineForm('form-add-payment');
+  toast('✓ تم تسجيل الدفعة');
+  renderProfileData(currentProfilePid);renderDashboard();
+}
+
+function openEditBill(id){
+  const bills=DB.get('billing')||[];
+  const b=bills.find(x=>x.id===id);
+  if(!b) return;
+  // Fill payment form with existing data
+  document.getElementById('inline-bill-svc').value=b.service||'';
+  document.getElementById('inline-bill-paid').value=b.amount||0;
+  document.getElementById('inline-bill-method').value=b.method||'نقدي';
+  document.getElementById('inline-bill-date').value=b.date||today();
+  document.getElementById('form-add-payment').dataset.editId=id;
+  document.getElementById('form-add-payment').style.display='block';
+  inlineCalcRemaining();
+  document.getElementById('form-add-payment').scrollIntoView({behavior:'smooth',block:'nearest'});
+}
+
+function deleteBillFromProfile(id){
+  if(!confirm('حذف هذه الدفعة؟'))return;
+  DB.set('billing',(DB.get('billing')||[]).filter(b=>b.id!==id));
+  renderProfileData(currentProfilePid);renderDashboard();toast('تم الحذف');
+}
+
+function deleteApptFromProfile(id){
+  if(!confirm('حذف هذا الموعد؟'))return;
+  DB.set('appointments',(DB.get('appointments')||[]).filter(a=>a.id!==id));
+  renderProfileData(currentProfilePid);renderDashboard();toast('تم الحذف');
+}
+
+// ====== BILLING ======
+function loadPatientTreatments(){
+  const pid=document.getElementById('bill-patient').value;
+  const txs=(DB.get('treatments')||[]).filter(t=>t.patientId===pid&&t.status!=='مكتمل');
+  const sel=document.getElementById('bill-treatment-link');
+  sel.innerHTML='<option value="">-- غير مرتبط --</option>'+txs.map(t=>`<option value="${t.id}">${t.procedure}${t.tooth?' ('+t.tooth+')':''} — إجمالي: ${(t.cost||0).toLocaleString()} ج</option>`).join('');
+  calcRemaining();
+}
+function calcRemaining(){
+  const total=+document.getElementById('bill-total-amount').value||0;
+  const paid=+document.getElementById('bill-amount').value||0;
+  // Check previously paid bills for same treatment
+  const txId=document.getElementById('bill-treatment-link').value;
+  let prevPaid=0;
+  if(txId){
+    const bills=DB.get('billing')||[];
+    prevPaid=bills.filter(b=>b.treatmentId===txId).reduce((s,b)=>s+(b.amount||0),0);
+  }
+  document.getElementById('bill-remaining-display').textContent=Math.max(0,total-prevPaid-paid).toLocaleString()+' ج';
+  document.getElementById('bill-prev-paid-display').textContent=prevPaid.toLocaleString()+' ج';
+}
+function openBillModal(){
+  populateSelects();
+  openModal('modal-bill');
+  document.getElementById('bill-date').value=today();
+  document.getElementById('bill-treatment-link').innerHTML='<option value="">-- غير مرتبط --</option>';
+  document.getElementById('bill-total-amount').value=0;
+  document.getElementById('bill-amount').value=0;
+  document.getElementById('bill-remaining-display').textContent='0 ج';
+  document.getElementById('bill-prev-paid-display').textContent='0 ج';
+}
+function saveBill(){
+  const pid=document.getElementById('bill-patient').value;
+  const svc=document.getElementById('bill-service').value.trim();
+  const amt=+document.getElementById('bill-amount').value;
+  if(!pid||!svc||!amt){toast('⚠ يرجى ملء الحقول الإلزامية');return;}
+  const pt=(DB.get('patients')||[]).find(p=>p.id===pid);
+  const bills=DB.get('billing')||[];
+  const txId=document.getElementById('bill-treatment-link').value;
+  const totalAmt=+document.getElementById('bill-total-amount').value||amt;
+  // Calculate remaining after this payment
+  const prevPaid=bills.filter(b=>b.treatmentId===txId&&txId).reduce((s,b)=>s+(b.amount||0),0);
+  const newRemaining=Math.max(0,totalAmt-prevPaid-amt);
+  const status=newRemaining===0?'مدفوعة':amt>0?'جزئي':'غير مدفوعة';
+  bills.push({id:uid(),num:bills.length+1001,patientId:pid,patientName:pt?pt.name:pid,service:svc,amount:amt,totalAmount:totalAmt,remaining:newRemaining,treatmentId:txId||null,date:document.getElementById('bill-date').value,method:document.getElementById('bill-method').value,status});
+  // Update treatment paid amount
+  if(txId){
+    const txs=DB.get('treatments')||[];
+    const ti=txs.findIndex(t=>t.id===txId);
+    if(ti>-1){txs[ti].paid=(txs[ti].paid||0)+amt;if(newRemaining===0)txs[ti].status='مكتمل';DB.set('treatments',txs);}
+  }
+  // Update patient last visit
+  const pts=DB.get('patients')||[];
+  const pi=pts.findIndex(p=>p.id===pid);
+  if(pi>-1){pts[pi].lastVisit=today();DB.set('patients',pts);}
+  DB.set('billing',bills);
+  closeModal('modal-bill');toast('✓ تم إنشاء الفاتورة');renderBilling();renderDashboard();
+}
+function deleteBill(id){
+  if(!confirm('حذف هذه الفاتورة؟'))return;
+  DB.set('billing',(DB.get('billing')||[]).filter(b=>b.id!==id));renderBilling();renderDashboard();toast('تم الحذف');
+}
+function renderBilling(){
+  const bills=DB.get('billing')||[];
+  const totalPaid=bills.reduce((s,b)=>s+(b.amount||0),0);
+  const totalAmt=bills.reduce((s,b)=>s+(b.totalAmount||b.amount||0),0);
+  const remaining=bills.reduce((s,b)=>s+(b.remaining||0),0);
+  document.getElementById('bill-total').textContent=totalAmt.toLocaleString();
+  document.getElementById('bill-paid').textContent=totalPaid.toLocaleString();
+  document.getElementById('bill-unpaid').textContent=remaining.toLocaleString();
+  document.getElementById('bill-count').textContent=bills.length;
+  const sMap={مدفوعة:'b-green',جزئي:'b-amber','غير مدفوعة':'b-red'};
+  document.getElementById('bills-tbody').innerHTML=bills.length?[...bills].reverse().map(b=>`
+    <tr>
+      <td style="color:var(--text2)">${b.num}</td>
+      <td><div class="pr"><div class="av ${getAv(b.patientName)}">${getInit(b.patientName)}</div>${b.patientName}</div></td>
+      <td>${b.service}</td>
+      <td>${(b.totalAmount||b.amount||0).toLocaleString()} ج</td>
+      <td style="color:var(--green);font-weight:600;">${(b.amount||0).toLocaleString()} ج</td>
+      <td style="color:#993C1D;font-weight:600;">${(b.remaining||0).toLocaleString()} ج</td>
+      <td style="color:var(--text2)">${fmtDate(b.date)}</td>
+      <td><span class="badge ${sMap[b.status]||'b-gray'}">${b.status}</span></td>
+      <td><button class="btn btn-sm btn-danger" onclick="deleteBill('${b.id}')">حذف</button></td>
+    </tr>`).join(''):'<tr><td colspan="9" style="text-align:center;padding:30px;color:var(--text2)">لا توجد فواتير</td></tr>';
+}
+
+// ====== EXPENSES ======
+function openExpModal(){
+  openModal('modal-expense');
+  document.getElementById('exp-date').value=today();
+  document.getElementById('exp-amount').value=0;
+  document.getElementById('exp-item').value='';
+  document.getElementById('exp-supplier').value='';
+  document.getElementById('exp-notes').value='';
+  updateExpSupplierLabel();
+}
+function updateExpSupplierLabel(){
+  const type=document.getElementById('exp-type')?.value||'';
+  const labelMap={خامات:'اسم المورد',معمل:'اسم المعمل',مرتبات:'اسم الموظف',كهرباء:'الجهة',مياه:'الجهة',نظافة:'الشركة / الموظف',إيجار:'المالك / العنوان',أخرى:'الجهة'};
+  const el=document.getElementById('exp-supplier-label');
+  if(el) el.textContent=labelMap[type]||'الجهة';
+}
+function saveExpense(){
+  const type=document.getElementById('exp-type').value;
+  const supplier=document.getElementById('exp-supplier').value.trim();
+  const item=document.getElementById('exp-item').value.trim();
+  const amt=+document.getElementById('exp-amount').value;
+  if(!amt){toast('⚠ يرجى إدخال المبلغ');return;}
+  const exps=DB.get('expenses')||[];
+  exps.push({id:uid(),type,supplier,item,amount:amt,date:document.getElementById('exp-date').value,notes:document.getElementById('exp-notes').value});
+  DB.set('expenses',exps);
+  closeModal('modal-expense');toast('✓ تم تسجيل المصروف');renderExpenses();
+}
+function deleteExpense(id){
+  if(!confirm('حذف هذا المصروف؟'))return;
+  DB.set('expenses',(DB.get('expenses')||[]).filter(e=>e.id!==id));renderExpenses();toast('تم الحذف');
+}
+function renderExpenses(){
+  const exps=DB.get('expenses')||[];
+  const total=exps.reduce((s,e)=>s+(e.amount||0),0);
+  const materials=exps.filter(e=>e.type==='خامات').reduce((s,e)=>s+(e.amount||0),0);
+  const labs=exps.filter(e=>e.type==='معمل').reduce((s,e)=>s+(e.amount||0),0);
+  const ops=exps.filter(e=>['مرتبات','كهرباء','مياه','نظافة','إيجار'].includes(e.type)).reduce((s,e)=>s+(e.amount||0),0);
+  document.getElementById('exp-total').textContent=total.toLocaleString();
+  document.getElementById('exp-materials').textContent=materials.toLocaleString();
+  document.getElementById('exp-labs').textContent=labs.toLocaleString();
+  document.getElementById('exp-ops').textContent=ops.toLocaleString();
+  const typeColors={خامات:'b-blue',معمل:'b-purple',مرتبات:'b-amber',كهرباء:'b-amber',مياه:'b-blue',نظافة:'b-gray',إيجار:'b-gray',أخرى:'b-gray'};
+  document.getElementById('expenses-tbody').innerHTML=exps.length?[...exps].reverse().map(e=>`
+    <tr>
+      <td style="font-weight:600;">${e.item}</td>
+      <td><span class="badge ${typeColors[e.type]||'b-gray'}">${e.type}</span></td>
+      <td style="color:var(--text2)">${e.supplier||'-'}</td>
+      <td style="color:var(--text2)">${fmtDate(e.date)}</td>
+      <td style="font-weight:600;color:#993C1D;">${(e.amount||0).toLocaleString()} ج</td>
+      <td style="color:var(--text2);font-size:12px;">${e.notes||'-'}</td>
+      <td><button class="btn btn-sm btn-danger" onclick="deleteExpense('${e.id}')">حذف</button></td>
+    </tr>`).join(''):'<tr><td colspan="7" style="text-align:center;padding:30px;color:var(--text2)">لا توجد مصروفات</td></tr>';
+}
+
+// ====== DASHBOARD ======
+function renderDashboard(){
+  renderDashCal();
+  const pts=DB.get('patients')||[];
+  const apts=DB.get('appointments')||[];
+  const bills=DB.get('billing')||[];
+  const txs=DB.get('treatments')||[];
+  const todayStr=today();
+  const monthPrefix=todayStr.slice(0,7);
+
+  // Stats
+  const todayApts=apts.filter(a=>a.date===todayStr);
+  const monthApts=apts.filter(a=>a.date&&a.date.startsWith(monthPrefix));
+  const pendingBills=bills.filter(b=>b.status==='غير مدفوعة'||b.status==='جزئي');
+  document.getElementById('stat-today').textContent=todayApts.length;
+  document.getElementById('stat-today-sub').textContent='زيارة اليوم';
+  document.getElementById('stat-total').textContent=pts.length;
+  document.getElementById('stat-month').textContent=monthApts.length;
+  document.getElementById('stat-pending').textContent=pendingBills.length;
+
+  // Date label
+  const now=new Date();
+  const months=['يناير','فبراير','مارس','أبريل','مايو','يونيو','يوليو','أغسطس','سبتمبر','أكتوبر','نوفمبر','ديسمبر'];
+  document.getElementById('dash-date').textContent=months[now.getMonth()]+' '+now.getFullYear();
+
+  // Today only
+  const todayVisits=apts.filter(a=>a.date===todayStr).sort((a,b)=>a.time.localeCompare(b.time));
+
+  const byDay={};
+  todayVisits.forEach(a=>{if(!byDay[a.date])byDay[a.date]=[];byDay[a.date].push(a);});
+  const daysSorted=[todayStr].filter(d=>byDay[d]);
+
+  const monthListEl=document.getElementById('dash-monthly-list');
+  if(!todayVisits.length){
+    monthListEl.innerHTML='<div style="text-align:center;padding:30px;color:var(--text2);">لا توجد زيارات اليوم</div>';
+  } else {
+    monthListEl.innerHTML=daysSorted.map(ds=>{
+      const isToday=true;
+      const dayVisits=byDay[ds];
+      return `<div style="margin-bottom:14px;">
+        ${dayVisits.map(a=>{
+          // Get treatment info for this patient on this day
+          const patTxs=txs.filter(t=>t.patientId===a.patientId);
+          const totalCost=patTxs.reduce((s,t)=>s+(t.cost||0),0);
+          const totalPaid=bills.filter(b=>b.patientId===a.patientId).reduce((s,b)=>s+(b.amount||0),0);
+          const todayPaid=bills.filter(b=>b.patientId===a.patientId&&b.date===todayStr).reduce((s,b)=>s+(b.amount||0),0);
+          const remaining=Math.max(0,totalCost-totalPaid);
+          const proc=patTxs.length?patTxs[patTxs.length-1].procedure:'';
+          return `<div style="display:flex;align-items:center;gap:8px;padding:8px;border-radius:var(--radius);background:var(--bg2);margin-bottom:5px;">
+            <input type="checkbox" class="dash-chk" data-paid="${todayPaid}" onchange="calcDashSelection()" style="width:auto;flex-shrink:0;cursor:pointer;">
+            <div class="av ${getAv(a.patientName)}" style="flex-shrink:0;">${getInit(a.patientName)}</div>
+            <div style="flex:1;min-width:0;">
+              <div style="font-size:13px;font-weight:600;cursor:pointer;color:var(--blue);" onclick="openProfile('${a.patientId}')">${a.patientName}</div>
+              ${proc?`<div style="font-size:11px;color:var(--text2);">${proc}</div>`:''}
+            </div>
+            <div style="text-align:left;flex-shrink:0;font-size:11px;">
+              <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:4px;text-align:center;">
+                <div style="background:var(--bg);border-radius:6px;padding:4px 6px;">
+                  <div style="color:var(--text2);font-size:9px;">الإجمالي</div>
+                  <div style="font-weight:700;font-size:11px;color:var(--text);">${totalCost.toLocaleString()} ج</div>
+                </div>
+                <div style="background:var(--bg2);border-radius:6px;padding:4px 6px;">
+                  <div style="color:var(--text2);font-size:9px;">سابق</div>
+                  <div style="font-weight:700;font-size:11px;color:var(--text);">${(totalPaid-todayPaid).toLocaleString()} ج</div>
+                </div>
+                <div style="background:#E1F5EE;border-radius:6px;padding:4px 6px;">
+                  <div style="color:var(--text2);font-size:9px;">اليوم</div>
+                  <div style="font-weight:700;font-size:11px;color:var(--green);">${todayPaid.toLocaleString()} ج</div>
+                </div>
+                <div style="background:${remaining>0?'#FEF0EB':'#E1F5EE'};border-radius:6px;padding:4px 6px;">
+                  <div style="color:var(--text2);font-size:9px;">متبقي</div>
+                  <div style="font-weight:700;font-size:11px;color:${remaining>0?'#993C1D':'var(--green)'};">${remaining.toLocaleString()} ج</div>
+                </div>
+              </div>
+            </div>
+            <label title="WhatsApp تقييم" style="flex-shrink:0;cursor:pointer;">
+              <input type="checkbox" id="wa-chk-${a.id}" onchange="sendWhatsAppReview(this,'${a.id}')" style="display:none;">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="#25D366" onclick="document.getElementById('wa-chk-${a.id}').click()"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
+            </label>
+          </div>`;
+        }).join('')}
+      </div>`;
+    }).join('');
+  }
+
+  // Upcoming in calendar (القادمة في التقويم)
+  const tomorrowStr=new Date(new Date().setDate(new Date().getDate()+1)).toISOString().split('T')[0];
+  const upcoming=apts.filter(a=>a.date>=tomorrowStr).sort((a,b)=>a.date.localeCompare(b.date)||a.time.localeCompare(b.time)).slice(0,8);
+  document.getElementById('upcoming-appts').innerHTML=upcoming.length?
+    upcoming.map(a=>`<div style="display:flex;gap:6px;padding:6px 0;border-bottom:1px solid var(--border);font-size:12px;align-items:center;">
+      <div style="flex-shrink:0;text-align:center;min-width:44px;">
+        <div style="font-size:10px;color:var(--text2);">${fmtDate(a.date)}</div>
+        <div style="font-weight:700;">${a.time}</div>
+      </div>
+      <div style="flex:1;cursor:pointer;color:var(--blue);font-weight:600;" onclick="openProfile('${a.patientId}')">${a.patientName}</div>
+      ${a.clinic?`<span class="badge b-blue" style="font-size:10px;">${a.clinic}</span>`:''}
+    </div>`).join(''):
+    '<div style="text-align:center;padding:14px;color:var(--text2);font-size:12px;">لا توجد مواعيد قادمة</div>';
+
+  // Alerts
+  const alerts=[];
+  const inv=DB.get('inventory')||[];
+  const lowInv=inv.filter(i=>i.qty<=i.min);
+  if(lowInv.length) alerts.push({type:'amber',title:`${lowInv.length} أصناف منخفضة في المخزون`,sub:'يحتاج توريد'});
+  if(pendingBills.length) alerts.push({type:'red',title:`${pendingBills.length} فاتورة معلقة أو جزئية`,sub:'اضغط للتفاصيل'});
+  document.getElementById('alerts-list').innerHTML=alerts.length?
+    alerts.map(a=>`<div class="alert alert-${a.type}" style="${a.sub==='اضغط للتفاصيل'?'cursor:pointer;':''}" onclick="${a.sub==='اضغط للتفاصيل'?'openPendingModal()':''}"><div><div style="font-weight:600;color:var(--${a.type});font-size:13px;">${a.title}</div><div style="font-size:11px;color:var(--${a.type})">${a.sub}</div></div></div>`).join(''):
+    '<div style="font-size:13px;color:var(--text2);text-align:center;padding:14px;">لا توجد تنبيهات</div>';
+
+  // Hide selection bar initially
+  document.getElementById('dash-selection-bar').style.display='none';
+}
+
+function dashPatientSuggest(val){
+  const box=document.getElementById('dash-patient-suggestions');
+  document.getElementById('dash-appt-patient').value=''; // reset selection
+  if(!val||val.length<1){box.style.display='none';return;}
+  const pts=DB.get('patients')||[];
+  const matches=pts.filter(p=>p.name&&p.name.includes(val)).slice(0,6);
+  if(!matches.length){box.style.display='none';return;}
+  box.innerHTML=matches.map(p=>`
+    <div onclick="selectDashPatient('${p.id}','${p.name.replace(/'/g,"\'")}')"
+      style="padding:9px 14px;cursor:pointer;border-bottom:1px solid var(--border);font-size:13px;"
+      onmouseover="this.style.background='var(--bg2)'" onmouseout="this.style.background=''">
+      <div style="font-weight:600;">${p.name}</div>
+      <div style="font-size:11px;color:var(--text2);">📞 ${p.phone||''}</div>
+    </div>`).join('');
+  box.style.display='block';
+}
+
+function selectDashPatient(id, name){
+  document.getElementById('dash-appt-patient').value=id;
+  document.getElementById('dash-appt-patient-name').value=name;
+  document.getElementById('dash-patient-suggestions').style.display='none';
+}
+
+function toggleDashApptForm(){
+  const f=document.getElementById('dash-appt-form');
+  f.style.display=f.style.display==='none'?'block':'none';
+  if(f.style.display==='block'){
+    document.getElementById('dash-appt-patient-name').value='';
+    document.getElementById('dash-appt-patient').value='';
+    document.getElementById('dash-patient-suggestions').style.display='none';
+  }
+}
+
+function saveDashAppt(){
+  const pid=document.getElementById('dash-appt-patient').value;
+  if(!pid){toast('⚠ اختر مريض من القائمة');return;}
+  const pt=(DB.get('patients')||[]).find(p=>p.id===pid);
+  const docs=DB.get('doctors')||[];
+  const clinic=CLINIC_ID==='itay'?'إيتاي':'السوالم';
+  const apts=DB.get('appointments')||[];
+  const proc=document.getElementById('dash-appt-proc').value;
+  const apptDate=document.getElementById('dash-appt-form').dataset.selectedDate||today();
+  apts.push({id:uid(),patientId:pid,patientName:pt?pt.name:pid,doctor:docs[0]?docs[0].name:'',date:apptDate,time:document.getElementById('dash-appt-time').value||'12:00',type:proc||'زيارة',proc,notes:'',clinic,status:'مؤكد'});
+  DB.set('appointments',apts);
+  document.getElementById('dash-appt-form').style.display='none';
+  document.getElementById('dash-appt-proc').value='';
+  document.getElementById('dash-appt-patient').value='';
+  toast('✓ تم حجز الموعد');
+  renderDashboard();
+}
+
+function calcDashSelection(){
+  const chks=[...document.querySelectorAll('.dash-chk:checked')];
+  const total=chks.reduce((s,c)=>s+(+c.dataset.paid||0),0);
+  const bar=document.getElementById('dash-selection-bar');
+  bar.style.display=chks.length?'flex':'none';
+  document.getElementById('dash-sel-count').textContent=chks.length;
+  document.getElementById('dash-sel-total').textContent=total.toLocaleString();
+}
+
+function dashSelectAll(el){
+  document.querySelectorAll('.dash-chk').forEach(c=>{c.checked=el.checked;});
+  calcDashSelection();
+}
+
+function clearDashSelection(){
+  document.querySelectorAll('.dash-chk').forEach(c=>{c.checked=false;});
+  const selAll=document.getElementById('dash-select-all');
+  if(selAll) selAll.checked=false;
+  document.getElementById('dash-selection-bar').style.display='none';
+}
+
+function openPendingModal(){
+  const bills=(DB.get('billing')||[]).filter(b=>b.status==='غير مدفوعة'||b.status==='جزئي')
+    .sort((a,b)=>b.date.localeCompare(a.date));
+  const bsMap={جزئي:'b-amber','غير مدفوعة':'b-red'};
+  const content=document.getElementById('pending-bills-content');
+  if(!bills.length){
+    content.innerHTML='<div style="text-align:center;padding:30px;color:var(--text2);font-size:13px;">✓ لا توجد فواتير معلقة</div>';
+  } else {
+    const totalRemaining=bills.reduce((s,b)=>s+(b.remaining||0),0);
+    content.innerHTML=`
+      <div style="display:flex;justify-content:space-between;align-items:center;padding:10px 0 14px;border-bottom:1px solid var(--border);margin-bottom:14px;">
+        <span style="font-size:13px;color:var(--text2);">${bills.length} فاتورة معلقة</span>
+        <span style="font-size:14px;font-weight:700;color:#993C1D;">إجمالي المتبقي: ${totalRemaining.toLocaleString()} ج</span>
+      </div>
+      ${bills.map(b=>`
+        <div style="padding:12px;border:1px solid var(--border);border-radius:var(--radius);margin-bottom:8px;">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
+            <span style="font-weight:700;font-size:13px;cursor:pointer;color:var(--blue);text-decoration:underline;text-underline-offset:2px;" onclick="closeModal('modal-pending-bills');openProfile('${b.patientId}')">${b.patientName}</span>
+            <span class="badge ${bsMap[b.status]||'b-gray'}">${b.status}</span>
+          </div>
+          <div style="font-size:13px;margin-bottom:5px;">${b.service||'-'}</div>
+          <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;font-size:12px;">
+            <div style="background:var(--bg2);padding:6px 8px;border-radius:6px;text-align:center;">
+              <div style="color:var(--text2);font-size:10px;">إجمالي الإجراء</div>
+              <div style="font-weight:700;">${(b.totalAmount||b.amount||0).toLocaleString()} ج</div>
+            </div>
+            <div style="background:var(--green-light);padding:6px 8px;border-radius:6px;text-align:center;">
+              <div style="color:var(--text2);font-size:10px;">المدفوع</div>
+              <div style="font-weight:700;color:var(--green);">${(b.amount||0).toLocaleString()} ج</div>
+            </div>
+            <div style="background:var(--red-light);padding:6px 8px;border-radius:6px;text-align:center;">
+              <div style="color:var(--text2);font-size:10px;">المتبقي</div>
+              <div style="font-weight:700;color:#993C1D;">${(b.remaining||0).toLocaleString()} ج</div>
+            </div>
+          </div>
+          <div style="font-size:11px;color:var(--text2);margin-top:6px;">${fmtDate(b.date)} · ${b.method||'نقدي'} · فاتورة #${b.num||''}</div>
+        </div>`).join('')}`;
+  }
+  openModal('modal-pending-bills');
+}
+
+// ====== SETTINGS ======
+function renderSettings(){
+  const s=DB.get('settings')||{};
+  document.getElementById('s-clinic-name').value=s.clinicName||'';
+  document.getElementById('s-doctor-name').value=s.doctorName||'';
+  document.getElementById('s-address').value=s.address||'';
+  document.getElementById('s-phone').value=s.phone||'';
+  document.getElementById('s-review-msg').value=s.reviewMsg||'مرحباً {name}، شكراً لزيارتك عيادة الابتسامة اليوم 🦷\nنسعد بمعرفة رأيك في خدمتنا، هل يمكنك تقييم زيارتك؟\nشكراً لثقتك بنا 😊';
+  const docs=DB.get('doctors')||[];
+  document.getElementById('doctors-list').innerHTML=docs.map(d=>`
+    <div style="display:flex;justify-content:space-between;align-items:center;padding:7px 0;border-bottom:1px solid var(--border);">
+      <div><div style="font-size:13px;font-weight:600;">${d.name}</div><div style="font-size:11px;color:var(--text2);">${d.spec}</div></div>
+      <button class="btn btn-sm btn-danger" onclick="deleteDoctor('${d.id}')">حذف</button>
+    </div>`).join('');
+  renderSettingsPrices();
+}
+
+function renderSettingsPrices(){
+  const prices=DB.get('prices')||[];
+  const tbody=document.getElementById('settings-prices-tbody');
+  if(!tbody) return;
+  tbody.innerHTML=prices.length?prices.map(p=>`
+    <tr>
+      <td>
+        <input value="${p.name}" onchange="updatePrice('${p.id}','name',this.value)" style="border:none;background:transparent;font-size:13px;font-weight:600;width:100%;padding:2px 0;" onfocus="this.style.background='var(--bg2)'" onblur="this.style.background='transparent'">
+      </td>
+      <td>
+        <input type="number" value="${p.price}" onchange="updatePrice('${p.id}','price',+this.value)" style="border:none;background:transparent;font-size:13px;font-weight:600;width:80px;color:var(--green);" onfocus="this.style.background='var(--bg2)'" onblur="this.style.background='transparent'">
+      </td>
+      <td style="color:var(--text2);font-size:12px;">${p.duration||'-'}</td>
+      <td><button class="btn btn-sm btn-danger" onclick="deletePrice('${p.id}')">حذف</button></td>
+    </tr>`).join(''):'<tr><td colspan="4" style="text-align:center;padding:20px;color:var(--text2);">لا توجد أسعار — أضف من الأعلى</td></tr>';
+}
+
+function addPrice(){
+  const name=document.getElementById('new-price-name').value.trim();
+  const val=+document.getElementById('new-price-val').value;
+  if(!name){toast('⚠ اكتب اسم الإجراء');return;}
+  const prices=DB.get('prices')||[];
+  prices.push({id:uid(),name,price:val,duration:document.getElementById('new-price-dur').value.trim()});
+  DB.set('prices',prices);
+  document.getElementById('new-price-name').value='';
+  document.getElementById('new-price-val').value='';
+  document.getElementById('new-price-dur').value='';
+  renderSettingsPrices();
+  populateProcSelect();
+  toast('✓ تم إضافة الإجراء');
+}
+
+function updatePrice(id,field,val){
+  const prices=DB.get('prices')||[];
+  const i=prices.findIndex(p=>p.id===id);
+  if(i>-1){prices[i][field]=val;DB.set('prices',prices);}
+  populateProcSelect();
+}
+
+function deletePrice(id){
+  if(!confirm('حذف هذا الإجراء من القائمة؟'))return;
+  DB.set('prices',(DB.get('prices')||[]).filter(p=>p.id!==id));
+  renderSettingsPrices();
+  populateProcSelect();
+  toast('تم الحذف');
+}
+
+// ====== PROCEDURE SELECT (in treatment form) ======
+function populateProcSelect(){
+  const sel=document.getElementById('inline-tx-proc-select');
+  if(!sel) return;
+  const prices=DB.get('prices')||[];
+  sel.innerHTML='<option value="">-- اختر من القائمة --</option>'+
+    prices.map(p=>`<option value="${p.id}" data-name="${p.name}" data-price="${p.price}">${p.name}${p.price?' — '+p.price.toLocaleString()+' ج':''}</option>`).join('');
+}
+
+function onProcSelectChange(){
+  const sel=document.getElementById('inline-tx-proc-select');
+  const opt=sel.options[sel.selectedIndex];
+  if(!opt||!opt.value){
+    document.getElementById('inline-tx-price-hint').style.display='none';
+    return;
+  }
+  const name=opt.getAttribute('data-name');
+  const price=+opt.getAttribute('data-price')||0;
+  // Fill in the name field
+  document.getElementById('inline-tx-proc').value=name;
+  // Fill price
+  document.getElementById('inline-tx-cost').value=price;
+  // Show hint
+  const hint=document.getElementById('inline-tx-price-hint');
+  hint.textContent='✓ السعر من القائمة: '+price.toLocaleString()+' ج';
+  hint.style.display='block';
+}
+
+function saveSettings(){
+  DB.set('settings',{clinicName:document.getElementById('s-clinic-name').value,doctorName:document.getElementById('s-doctor-name').value,address:document.getElementById('s-address').value,phone:document.getElementById('s-phone').value,reviewMsg:document.getElementById('s-review-msg').value});
+  document.getElementById('clinic-name-display').textContent=document.getElementById('s-clinic-name').value||'عيادة الابتسامة';
+  toast('✓ تم حفظ الإعدادات');
+}
+
+function addDoctor(){
+  const name=document.getElementById('new-doctor-name').value.trim();
+  const spec=document.getElementById('new-doctor-spec').value.trim();
+  if(!name){toast('⚠ أدخل اسم الطبيب');return;}
+  const docs=DB.get('doctors')||[];
+  docs.push({id:uid(),name,spec});
+  DB.set('doctors',docs);document.getElementById('new-doctor-name').value='';document.getElementById('new-doctor-spec').value='';
+  renderSettings();toast('✓ تم إضافة الطبيب');
+}
+
+function deleteDoctor(id){
+  DB.set('doctors',(DB.get('doctors')||[]).filter(d=>d.id!==id));renderSettings();toast('تم الحذف');
+}
+
+// ====== BACKUP ======
+function exportData(){
+  const data={patients:DB.get('patients'),appointments:DB.get('appointments'),treatments:DB.get('treatments'),inventory:DB.get('inventory'),billing:DB.get('billing'),prices:DB.get('prices'),doctors:DB.get('doctors'),tooth_charts:DB.get('tooth_charts'),settings:DB.get('settings')};
+  const blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json'});
+  const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='dental_backup_'+today()+'.json';a.click();
+  toast('✓ تم تصدير البيانات');
+}
+
+function importData(input){
+  const file=input.files[0];if(!file)return;
+  const reader=new FileReader();
+  reader.onload=async e=>{
+    try{
+      const data=JSON.parse(e.target.result);
+      // احفظ محلياً أولاً
+      Object.keys(data).forEach(k=>{
+        if(data[k]!==null) localStorage.setItem(CLINIC_PREFIX+k, JSON.stringify(data[k]));
+      });
+      toast('✓ تم استيراد البيانات محلياً...');
+      // ارفع على Firebase لو متصل
+      if(FIREBASE_OK && db){
+        toast('⏳ جاري رفع البيانات على Firebase...');
+        const cols=['patients','appointments','treatments','inventory','billing','prices','doctors'];
+        const fbCol = typeof CLINIC_ID!=='undefined' ? (k=>CLINIC_ID+'_'+k) : (k=>k);
+        for(const col of cols){
+          const arr=data[col];
+          if(!arr||!arr.length) continue;
+          const batch=db.batch();
+          // امسح القديم
+          const old=await db.collection(fbCol(col)).get();
+          old.docs.forEach(d=>batch.delete(d.ref));
+          arr.forEach(item=>{
+            const ref=db.collection(fbCol(col)).doc(item.id||uid());
+            batch.set(ref,item);
+          });
+          await batch.commit();
+        }
+        toast('✓ تم استيراد البيانات ورفعها على Firebase');
+      } else {
+        toast('✓ تم استيراد البيانات بنجاح');
+      }
+      renderDashboard();
+      renderPatients();
+    }catch(err){toast('⚠ خطأ: '+err.message);}
+  };
+  reader.readAsText(file);
+}
+
+function clearData(){
+  ['patients','appointments','treatments','inventory','billing','prices','doctors','tooth_charts'].forEach(k=>localStorage.removeItem(CLINIC_PREFIX+k));
+  DB.init();toast('تم حذف كل البيانات');renderDashboard();
+}
+
+// ====== TABS ======
+function switchTab(el,tid){
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  el.classList.add('active');
+  document.getElementById('t-plans').style.display=tid==='t-plans'?'block':'none';
+  document.getElementById('t-prices').style.display=tid==='t-prices'?'block':'none';
+}
+
+// ====== FIREBASE SETUP ======
+function saveFirebaseConfig() {
+  const apiKey = document.getElementById('fb-apiKey').value.trim();
+  const projectId = document.getElementById('fb-projectId').value.trim();
+  if (!apiKey || !projectId) { toast('⚠ يرجى إدخال apiKey و projectId على الأقل'); return; }
+  const cfg = {
+    apiKey,
+    projectId,
+    authDomain:        document.getElementById('fb-authDomain').value.trim() || projectId + '.firebaseapp.com',
+    storageBucket:     document.getElementById('fb-storageBucket').value.trim() || projectId + '.appspot.com',
+    messagingSenderId: document.getElementById('fb-messagingSenderId').value.trim(),
+    appId:             document.getElementById('fb-appId').value.trim(),
+  };
+  localStorage.setItem('dental_fb_config', JSON.stringify(cfg));
+  closeModal('modal-firebase-setup');
+  toast('✓ تم حفظ الإعدادات — جاري الاتصال...');
+  updateSyncStatus('local', '⏳ جاري الاتصال بـ Firebase...');
+  // Reload page to re-init Firebase with new config
+  setTimeout(() => location.reload(), 1200);
+}
+
+// ====== TREASURY ======
+const DEFAULT_TREASURY_PASS = '1234';
+function getTreasuryPass(){ return localStorage.getItem(CLINIC_PREFIX+'treasury_pass')||DEFAULT_TREASURY_PASS; }
+function openTreasury(){
+  document.getElementById('treasury-pass-input').value='';
+  document.getElementById('treasury-pass-error').style.display='none';
+  openModal('modal-treasury-pass');
+  setTimeout(()=>document.getElementById('treasury-pass-input').focus(),100);
+}
+function checkTreasuryPass(){
+  const val=document.getElementById('treasury-pass-input').value;
+  if(val===getTreasuryPass()){
+    closeModal('modal-treasury-pass');
+    sw('treasury',null);
+    const now=new Date(), y=now.getFullYear(), m=String(now.getMonth()+1).padStart(2,'0');
+    if(document.getElementById('trs-from')) document.getElementById('trs-from').value=`${y}-${m}-01`;
+    if(document.getElementById('trs-to')) document.getElementById('trs-to').value=today();
+    renderTreasury();
+  } else {
+    document.getElementById('treasury-pass-error').style.display='block';
+    document.getElementById('treasury-pass-input').value='';
+    document.getElementById('treasury-pass-input').focus();
+  }
+}
+function changeTreasuryPass(){
+  const np=document.getElementById('trs-new-pass').value;
+  const cp=document.getElementById('trs-confirm-pass').value;
+  if(!np){toast('⚠ اكتب كلمة السر الجديدة');return;}
+  if(np!==cp){toast('⚠ كلمتا السر غير متطابقتين');return;}
+  localStorage.setItem(CLINIC_PREFIX+'treasury_pass',np);
+  document.getElementById('trs-new-pass').value='';
+  document.getElementById('trs-confirm-pass').value='';
+  toast('✓ تم تغيير كلمة السر');
+}
+function onTrsPeriodChange(){
+  const v=document.getElementById('trs-period').value;
+  const cr=document.getElementById('trs-custom-range');
+  cr.style.display=v==='custom'?'flex':'none';
+  if(v==='month') renderTreasury();
+}
+function getTrsDateRange(){
+  const period=document.getElementById('trs-period')?.value||'month';
+  const months=['يناير','فبراير','مارس','أبريل','مايو','يونيو','يوليو','أغسطس','سبتمبر','أكتوبر','نوفمبر','ديسمبر'];
+  if(period==='month'){
+    const now=new Date(), y=now.getFullYear(), m=String(now.getMonth()+1).padStart(2,'0');
+    return {from:`${y}-${m}-01`, to:today(), label:months[now.getMonth()]+' '+y};
+  }
+  const from=document.getElementById('trs-from')?.value||today();
+  const to=document.getElementById('trs-to')?.value||today();
+  return {from, to, label:fmtDate(from)+' — '+fmtDate(to)};
+}
+function renderTreasury(){
+  const {from,to,label}=getTrsDateRange();
+  const lbl=document.getElementById('trs-period-label');
+  if(lbl) lbl.textContent=label;
+  const allBills=DB.get('billing')||[];
+  const allExps=DB.get('expenses')||[];
+  const allTxs=DB.get('treatments')||[];
+  const bills=allBills.filter(b=>b.date&&b.date>=from&&b.date<=to);
+  const exps=allExps.filter(e=>e.date&&e.date>=from&&e.date<=to);
+  const totalRevenue=bills.reduce((s,b)=>s+(b.amount||0),0);
+  const totalExpenses=exps.reduce((s,e)=>s+(e.amount||0),0);
+  const netProfit=totalRevenue-totalExpenses;
+
+  // حساب المتبقي: مجموع تكلفة الإجراءات - مجموع كل المدفوع للمريض
+  const patientPending={};
+  // أولاً: احسب إجمالي تكلفة الإجراءات لكل مريض
+  allTxs.forEach(t=>{
+    if(!(t.cost>0)) return;
+    if(!patientPending[t.patientId]) patientPending[t.patientId]={name:t.patientName,totalCost:0,items:[]};
+    patientPending[t.patientId].totalCost+=(t.cost||0);
+    patientPending[t.patientId].items.push({proc:t.procedure,tooth:t.tooth,cost:t.cost||0,id:t.id});
+  });
+  // ثانياً: اخصم كل المدفوع للمريض (بصرف النظر عن الإجراء المرتبط)
+  Object.keys(patientPending).forEach(pid=>{
+    const totalPaidForPatient=allBills.filter(b=>b.patientId===pid).reduce((s,b)=>s+(b.amount||0),0);
+    patientPending[pid].remaining=Math.max(0,patientPending[pid].totalCost-totalPaidForPatient);
+    patientPending[pid].totalPaid=totalPaidForPatient;
+  });
+  // أزل المرضى اللي دفعوا كامل
+  Object.keys(patientPending).forEach(pid=>{
+    if(patientPending[pid].remaining<=0) delete patientPending[pid];
+  });
+  const pendingAmt=Object.values(patientPending).reduce((s,p)=>s+p.remaining,0);
+  document.getElementById('trs-revenue').textContent=totalRevenue.toLocaleString();
+  document.getElementById('trs-expenses').textContent=totalExpenses.toLocaleString();
+  document.getElementById('trs-net').textContent=netProfit.toLocaleString();
+  document.getElementById('trs-net').style.color=netProfit>=0?'var(--green)':'#993C1D';
+  document.getElementById('trs-pending').textContent=pendingAmt.toLocaleString();
+  const pendingList=document.getElementById('trs-pending-list');
+  if(pendingList){
+    const sorted=Object.entries(patientPending).sort((a,b)=>b[1].remaining-a[1].remaining);
+    pendingList.innerHTML=sorted.length?sorted.map(([pid,pd])=>`
+      <div style="padding:10px;border-bottom:1px solid var(--border);">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:5px;">
+          <span style="font-weight:700;font-size:13px;cursor:pointer;color:var(--blue);text-decoration:underline;text-underline-offset:2px;" onclick="openProfile('${pid}')">${pd.name}</span>
+          <span style="font-weight:700;color:#993C1D;font-size:14px;">${pd.remaining.toLocaleString()} ج</span>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:4px;font-size:11px;margin-bottom:5px;">
+          <div style="color:var(--text2);">إجمالي الإجراءات: <strong>${pd.totalCost.toLocaleString()} ج</strong></div>
+          <div style="color:var(--green);">المدفوع: <strong>${pd.totalPaid.toLocaleString()} ج</strong></div>
+          <div style="color:#993C1D;">المتبقي: <strong>${pd.remaining.toLocaleString()} ج</strong></div>
+        </div>
+        ${pd.items.map(i=>`<div style="font-size:11px;color:var(--text2);padding:2px 8px;">• ${i.proc}${i.tooth?' (سن '+i.tooth+')':''} — ${i.cost.toLocaleString()} ج</div>`).join('')}
+      </div>`).join(''):'<div style="text-align:center;padding:20px;color:var(--text2);font-size:13px;">✓ لا يوجد متبقي على العملاء</div>';
+  }
+  const bsMap={مدفوعة:'b-green',جزئي:'b-amber','غير مدفوعة':'b-red'};
+  const byDay={};
+  bills.forEach(b=>{const d=b.date||'?';if(!byDay[d])byDay[d]=[];byDay[d].push(b);});
+  const daysSorted=Object.keys(byDay).sort((a,b)=>b.localeCompare(a));
+  if(document.getElementById('trs-rev-count')) document.getElementById('trs-rev-count').textContent=bills.length+' فاتورة';
+  document.getElementById('trs-revenue-list').innerHTML=daysSorted.length?
+    daysSorted.map(d=>{
+      const db2=byDay[d],dt=db2.reduce((s,b)=>s+(b.amount||0),0);
+      return `<div style="margin-bottom:12px;">
+        <div style="display:flex;justify-content:space-between;padding:6px 10px;background:var(--bg2);border-radius:var(--radius);margin-bottom:4px;">
+          <span style="font-size:12px;font-weight:700;">${fmtDate(d)}</span>
+          <span style="font-size:13px;font-weight:700;color:var(--green);">${dt.toLocaleString()} ج</span>
+        </div>
+        ${db2.map(b=>`<div style="display:flex;justify-content:space-between;padding:7px 10px;border-bottom:1px solid var(--border);font-size:12px;">
+          <div><div style="font-weight:600;">${b.patientName||'-'}</div>
+          <div style="color:var(--text2);font-size:11px;">${b.service||'-'} · ${b.method||'نقدي'}</div></div>
+          <div style="text-align:left;"><div style="font-weight:700;color:var(--green);">${(b.amount||0).toLocaleString()} ج</div>
+          <span class="badge ${bsMap[b.status]||'b-gray'}" style="font-size:10px;">${b.status||'مدفوعة'}</span></div>
+        </div>`).join('')}</div>`;
+    }).join('')+`<div style="display:flex;justify-content:space-between;padding:10px;font-size:14px;font-weight:700;border-top:2px solid var(--border);">
+      <span>الإجمالي</span><span style="color:var(--green);">${totalRevenue.toLocaleString()} ج</span></div>`:
+    `<div style="text-align:center;padding:20px;color:var(--text2);font-size:13px;">لا توجد إيرادات في هذه الفترة</div>`;
+  const typeColors={خامات:'b-blue',معمل:'b-purple',مرتبات:'b-amber',كهرباء:'b-amber',مياه:'b-blue',نظافة:'b-gray',إيجار:'b-gray',أخرى:'b-gray'};
+  const expByDay={};
+  exps.forEach(e=>{const d=e.date||'?';if(!expByDay[d])expByDay[d]=[];expByDay[d].push(e);});
+  const expDaysSorted=Object.keys(expByDay).sort((a,b)=>b.localeCompare(a));
+  if(document.getElementById('trs-exp-count')) document.getElementById('trs-exp-count').textContent=exps.length+' بند';
+  document.getElementById('trs-expenses-list').innerHTML=expDaysSorted.length?
+    expDaysSorted.map(d=>{
+      const de=expByDay[d],dt=de.reduce((s,e)=>s+(e.amount||0),0);
+      return `<div style="margin-bottom:12px;">
+        <div style="display:flex;justify-content:space-between;padding:6px 10px;background:var(--bg2);border-radius:var(--radius);margin-bottom:4px;">
+          <span style="font-size:12px;font-weight:700;">${fmtDate(d)}</span>
+          <span style="font-size:13px;font-weight:700;color:#993C1D;">${dt.toLocaleString()} ج</span>
+        </div>
+        ${de.map(e=>`<div style="display:flex;justify-content:space-between;padding:7px 10px;border-bottom:1px solid var(--border);font-size:12px;">
+          <div><div style="font-weight:600;">${e.item||'-'}</div>
+          <div style="color:var(--text2);font-size:11px;">${e.supplier||''} <span class="badge ${typeColors[e.type]||'b-gray'}" style="font-size:10px;">${e.type||''}</span></div>
+          ${e.notes?`<div style="color:var(--text2);font-size:10px;">${e.notes}</div>`:''}</div>
+          <span style="font-weight:700;color:#993C1D;">${(e.amount||0).toLocaleString()} ج</span>
+        </div>`).join('')}</div>`;
+    }).join('')+`<div style="display:flex;justify-content:space-between;padding:10px;font-size:14px;font-weight:700;border-top:2px solid var(--border);">
+      <span>إجمالي المصروفات</span><span style="color:#993C1D;">${totalExpenses.toLocaleString()} ج</span></div>`+
+    `<div style="display:flex;justify-content:space-between;padding:12px 10px;font-size:15px;font-weight:700;background:${netProfit>=0?'var(--green-light)':'var(--red-light)'};border-radius:var(--radius);margin-top:8px;">
+      <span>صافي الربح</span><span style="color:${netProfit>=0?'var(--green)':'#993C1D'};">${netProfit.toLocaleString()} ج</span></div>`:
+    `<div style="text-align:center;padding:20px;color:var(--text2);font-size:13px;">لا توجد مصروفات في هذه الفترة</div>`;
+}
+function togglePendingDetails(){
+  const el=document.getElementById('trs-pending-details');
+  if(!el) return;
+  el.style.display=el.style.display==='none'?'block':'none';
+}
+
+// ====== AUTO-FILL TREATMENT TOTAL ON PAYMENT FORM ======
+function onTxSelectChange(){
+  const txId=document.getElementById('inline-bill-tx').value;
+  if(txId){
+    const tx=(DB.get('treatments')||[]).find(t=>t.id===txId);
+    if(tx&&!document.getElementById('inline-bill-svc').value){
+      document.getElementById('inline-bill-svc').value=tx.procedure+(tx.tooth?' - سن '+tx.tooth:'');
+    }
+  } else {
+    document.getElementById('inline-bill-svc').value='';
+  }
+  inlineCalcRemaining();
+}
+
+// ====== WHATSAPP REVIEW ======
+function sendWhatsAppReview(checkbox, apptId){
+  if(!checkbox.checked) return;
+
+  const apts=DB.get('appointments')||[];
+  const appt=apts.find(a=>a.id===apptId);
+  if(!appt){toast('⚠ لم يتم العثور على الموعد');checkbox.checked=false;return;}
+
+  // ابحث عن رقم المريض
+  const pts=DB.get('patients')||[];
+  const pt=pts.find(p=>p.id===appt.patientId);
+  const phone=pt?pt.phone:'';
+
+  if(!phone){
+    toast('⚠ لا يوجد رقم هاتف لهذا المريض');
+    checkbox.checked=false;
+    return;
+  }
+
+  // جهّز الرسالة
+  const s=DB.get('settings')||{};
+  const defaultMsg='مرحباً {name}، شكراً لزيارتك عيادة الابتسامة اليوم 🦷\nنسعد بمعرفة رأيك في خدمتنا، هل يمكنك تقييم زيارتك؟\nشكراً لثقتك بنا 😊';
+  const msgTemplate=s.reviewMsg||defaultMsg;
+  const msg=msgTemplate.replace('{name}', appt.patientName||'');
+
+  // نظّف رقم الهاتف (أزل أي مسافات أو شرطات، وأضف كود مصر لو محتاج)
+  let cleanPhone=phone.replace(/\D/g,'');
+  if(cleanPhone.startsWith('0')) cleanPhone='2'+cleanPhone; // مصر +20
+  if(!cleanPhone.startsWith('20')&&cleanPhone.length===10) cleanPhone='20'+cleanPhone;
+
+  // افتح واتساب
+  const url='https://wa.me/'+cleanPhone+'?text='+encodeURIComponent(msg);
+  window.open(url,'_blank');
+
+  // ارسم checkbox كـ مُرسَل
+  checkbox.checked=true;
+  checkbox.disabled=true;
+  const lbl=checkbox.closest('label');
+  if(lbl){lbl.style.color='#25D366';lbl.title='تم الإرسال';}
+  toast('✓ تم فتح WhatsApp لإرسال التقييم');
+}
+
+// ====== CLOUDINARY PHOTOS ======
+const CLOUDINARY_CLOUD = 'dupu00v4y';
+const CLOUDINARY_PRESET = 'numzqlve';
+
+async function uploadPatientPhotos(input){
+  const files=[...input.files];
+  if(!files.length) return;
+  const progress=document.getElementById('upload-progress');
+  progress.style.display='block';
+  progress.textContent=`⏳ جاري رفع ${files.length} صورة...`;
+
+  const photos=DB.get('patient_photos')||{};
+  if(!photos[currentProfilePid]) photos[currentProfilePid]=[];
+
+  for(let i=0;i<files.length;i++){
+    progress.textContent=`⏳ رفع ${i+1} من ${files.length}...`;
+    try{
+      const fd=new FormData();
+      fd.append('file', files[i]);
+      fd.append('upload_preset', CLOUDINARY_PRESET);
+      fd.append('folder', 'dental/'+currentProfilePid);
+      const res=await fetch(`https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD}/image/upload`,{method:'POST',body:fd});
+      const data=await res.json();
+      if(data.secure_url){
+        photos[currentProfilePid].push({
+          id:uid(),
+          url:data.secure_url,
+          thumb:data.secure_url.replace('/upload/','/upload/w_200,h_200,c_fill/'),
+          date:today(),
+          publicId:data.public_id
+        });
+      } else {
+        // Show exact Cloudinary error
+        const errMsg=data.error?.message||JSON.stringify(data);
+        toast('⚠ Cloudinary: '+errMsg);
+        console.error('Cloudinary error:', data);
+      }
+    }catch(e){
+      toast('⚠ خطأ في الاتصال: '+e.message);
+      console.error('Upload error:', e);
+    }
+  }
+
+  DB.set('patient_photos', photos);
+  progress.style.display='none';
+  input.value='';
+  renderPatientPhotos(currentProfilePid);
+  toast('✓ تم رفع الصور بنجاح');
+}
+
+function renderPatientPhotos(pid){
+  const photos=DB.get('patient_photos')||{};
+  const patPhotos=photos[pid]||[];
+  const el=document.getElementById('patient-photos');
+  if(!el) return;
+  if(!patPhotos.length){
+    el.innerHTML='<div style="color:var(--text2);font-size:13px;padding:20px;text-align:center;width:100%;">لا توجد صور بعد — اضغط "+ إضافة صور"</div>';
+    return;
+  }
+  el.innerHTML=patPhotos.map(p=>`
+    <div style="position:relative;display:inline-block;">
+      <img src="${p.thumb}" onclick="openPhotoFull('${p.url}')"
+        style="width:100px;height:100px;object-fit:cover;border-radius:var(--radius);cursor:pointer;border:2px solid var(--border);transition:border-color 0.15s;"
+        onmouseover="this.style.borderColor='var(--blue)'" onmouseout="this.style.borderColor='var(--border)'"
+        onerror="this.src='data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 width=%22100%22 height=%22100%22><rect fill=%22%23eee%22 width=%22100%22 height=%22100%22/><text x=%2250%22 y=%2255%22 text-anchor=%22middle%22 fill=%22%23999%22 font-size=%2212%22>خطأ</text></svg>'">
+      <div style="position:absolute;bottom:2px;right:2px;background:rgba(0,0,0,0.5);color:white;font-size:9px;padding:1px 4px;border-radius:3px;">${fmtDate(p.date)}</div>
+      <button onclick="deletePatientPhoto('${pid}','${p.id}')"
+        style="position:absolute;top:2px;left:2px;background:rgba(200,0,0,0.8);color:white;border:none;border-radius:50%;width:18px;height:18px;font-size:11px;cursor:pointer;display:flex;align-items:center;justify-content:center;line-height:1;">×</button>
+    </div>`).join('');
+}
+
+function openPhotoFull(url){
+  const ov=document.createElement('div');
+  ov.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,0.9);z-index:9999;display:flex;align-items:center;justify-content:center;cursor:pointer;';
+  ov.onclick=()=>ov.remove();
+  ov.innerHTML=`<img src="${url}" style="max-width:95vw;max-height:95vh;object-fit:contain;border-radius:8px;">
+    <div style="position:absolute;top:16px;right:16px;color:white;font-size:28px;cursor:pointer;" onclick="this.parentElement.remove()">×</div>`;
+  document.body.appendChild(ov);
+}
+
+function deletePatientPhoto(pid, photoId){
+  if(!confirm('حذف هذه الصورة؟')) return;
+  const photos=DB.get('patient_photos')||{};
+  if(photos[pid]) photos[pid]=photos[pid].filter(p=>p.id!==photoId);
+  DB.set('patient_photos',photos);
+  renderPatientPhotos(pid);
+  toast('تم حذف الصورة');
+}
+
+// ====== INIT ======
+// نقل البيانات القديمة (بدون prefix) لـ إيتاي مرة واحدة
+(function migrateLegacy(){
+  const keys=['patients','appointments','treatments','inventory','billing','prices','doctors','tooth_charts','settings','expenses'];
+  keys.forEach(k=>{
+    const old=localStorage.getItem('dental_'+k);
+    if(old!==null){
+      if(!localStorage.getItem(CLINIC_PREFIX+k)) localStorage.setItem(CLINIC_PREFIX+k,old);
+      localStorage.removeItem('dental_'+k);
+    }
+  });
+})();
+DB.init();
+initDate();
+renderDashboard();
+const s=DB.get('settings');
+if(s&&s.clinicName) document.getElementById('clinic-name-display').textContent=s.clinicName;
+
+// Start Firebase (async — UI already works from localStorage)
+initFirebase().then(ok => {
+  if (ok) {
+    DB.loadFromFirebase().then(() => {
+      setupRealtimeListeners();
+      renderDashboard();
+      renderPatients();
+    });
+  }
+});
+</script>
+</body>
+</html>
